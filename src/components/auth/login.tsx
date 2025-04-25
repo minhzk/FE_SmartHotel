@@ -33,7 +33,7 @@ const Login = () => {
             
         } else {
             // redirect to dashboard
-            router.push('/dashboard')
+            router.push('/')
         }
     };
     return (
