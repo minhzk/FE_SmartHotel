@@ -1,19 +1,19 @@
 import { auth } from "@/auth";
-import UserTable from "@/components/admin/users/user.table"
+import BookingTable from "@/components/admin/booking.table";
 import { sendRequest } from "@/utils/api";
 
 interface IProps {
     params: { id: string }
     searchParams: { [key: string]: string | string[] | undefined }
 }
-const ManageUserPage = async (props: IProps) => {
 
+const ManageBookingsPage = async (props: IProps) => {
     const current = props?.searchParams?.current ?? 1;
     const pageSize = props?.searchParams?.pageSize ?? 10;
     const session = await auth();
 
     const res = await sendRequest<IBackendRes<any>>({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/users`,
+        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/bookings`,
         method: "GET",
         queryParams: {
             current,
@@ -23,18 +23,18 @@ const ManageUserPage = async (props: IProps) => {
             Authorization: `Bearer ${session?.user?.access_token}`,
         },
         nextOption: {
-            next: { tags: ['list-users'] }
+            next: { tags: ['list-bookings'] }
         }
-    })
+    });
 
     return (
         <div>
-            <UserTable
-                users={res?.data?.results ?? []}
+            <BookingTable
+                bookings={res?.data?.results ?? []}
                 meta={res?.data?.meta}
             />
         </div>
-    )
-}
+    );
+};
 
-export default ManageUserPage
+export default ManageBookingsPage;

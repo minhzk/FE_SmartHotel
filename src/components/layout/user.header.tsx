@@ -1,0 +1,228 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { Layout, Menu, Dropdown, Button, Avatar, Badge, Space, Divider } from 'antd';
+import { 
+  UserOutlined, 
+  HeartOutlined, 
+  OrderedListOutlined, 
+  StarOutlined, 
+  LogoutOutlined, 
+  ShoppingCartOutlined, 
+  BellOutlined,
+  HomeOutlined,
+  DollarOutlined,
+  SettingOutlined,
+  GlobalOutlined,
+  BookOutlined
+} from '@ant-design/icons';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { signOut } from 'next-auth/react';
+import Image from 'next/image';
+
+const { Header } = Layout;
+
+interface UserHeaderProps {
+  session: any;
+}
+
+const UserHeader = ({ session }: UserHeaderProps) => {
+  const pathname = usePathname();
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 10) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const userMenuItems = [
+    {
+      key: 'account',
+      label: (
+        <div className="user-dropdown-header">
+          <strong>TÀI KHOẢN CỦA TÔI</strong>
+        </div>
+      ),
+      type: 'group',
+      children: [
+        {
+          key: 'profile',
+          icon: <UserOutlined />,
+          label: <Link href="/profile">Thông tin cá nhân</Link>,
+        },
+        {
+          key: 'bookings',
+          icon: <OrderedListOutlined />,
+          label: <Link href="/bookings">Đơn đặt phòng</Link>,
+        },
+        {
+          key: 'messages',
+          icon: <BellOutlined />,
+          label: <Link href="/messages">Thông báo</Link>,
+        },
+        {
+          key: 'favorites',
+          icon: <HeartOutlined />,
+          label: <Link href="/favorites">Danh sách yêu thích</Link>,
+        },
+        {
+          key: 'reviews',
+          icon: <StarOutlined />,
+          label: <Link href="/reviews">Đánh giá của tôi</Link>,
+        },
+      ],
+    },
+    {
+      key: 'divider',
+      type: 'divider',
+    },
+    {
+      key: 'logout',
+      danger: true,
+      icon: <LogoutOutlined />,
+      label: <span onClick={() => signOut({ callbackUrl: '/' })}>Đăng xuất</span>,
+    },
+  ];
+
+  const mainNavItems = [
+    {
+      key: 'hotels',
+      label: <Link href="/hotels">Khách sạn</Link>,
+    },
+    {
+      key: 'deals',
+      label: <Link href="/deals">Ưu đãi</Link>,
+    },
+    {
+      key: 'about',
+      label: <Link href="/about">Về chúng tôi</Link>,
+    },
+  ];
+
+  return (
+    <Header
+      className={`user-header ${scrolled ? 'scrolled' : ''}`}
+      style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000,
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 50px',
+        background: scrolled ? 'white' : 'transparent',
+        boxShadow: scrolled ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
+        transition: 'all 0.3s',
+      }}
+    >
+      <div className="logo-container" style={{ display: 'flex', alignItems: 'center' }}>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center' }}>
+          <div className="logo" style={{ fontSize: '24px', fontWeight: 'bold', color: '#1890ff' }}>
+            <HomeOutlined /> Smart Hotel
+          </div>
+        </Link>
+        <Menu 
+          mode="horizontal" 
+          selectedKeys={[pathname === '/' ? 'home' : pathname.split('/')[1]]}
+          style={{ 
+            background: 'transparent', 
+            borderBottom: 'none', 
+            marginLeft: 40,
+            minWidth: 400
+          }}
+          items={mainNavItems}
+        />
+      </div>
+
+      <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+        <Badge count={3} size="small">
+          <Button 
+            type="text" 
+            icon={<BellOutlined style={{ fontSize: '18px' }} />} 
+            size="large"
+            shape="circle"
+          />
+        </Badge>
+
+        <Badge count={1} size="small">
+          <Button 
+            type="text" 
+            icon={<ShoppingCartOutlined style={{ fontSize: '18px' }} />} 
+            size="large"
+            shape="circle"
+            onClick={() => window.location.href = '/cart'}
+          />
+        </Badge>
+
+        <Dropdown menu={{ items: userMenuItems }} trigger={['click']} arrow>
+          <a onClick={(e) => e.preventDefault()} className="user-dropdown-link">
+            <Space>
+              <Avatar 
+                size="default" 
+                src={session?.user?.avatar} 
+                style={{ 
+                  backgroundColor: session?.user?.avatar ? 'transparent' : '#1890ff',
+                  cursor: 'pointer'
+                }}
+                icon={!session?.user?.avatar && <UserOutlined />}
+              />
+              <span style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {session?.user?.name || session?.user?.email || 'Tài khoản'}
+              </span>
+            </Space>
+          </a>
+        </Dropdown>
+      </div>
+
+      <style jsx global>{`
+        .user-header {
+          backdrop-filter: blur(5px);
+        }
+        
+        .user-header.scrolled {
+          backdrop-filter: none;
+        }
+        
+        .user-header .ant-menu-horizontal > .ant-menu-item::after,
+        .user-header .ant-menu-horizontal > .ant-menu-submenu::after {
+          border-bottom: none !important;
+        }
+        
+        .user-header .ant-menu-horizontal > .ant-menu-item-selected {
+          color: #1890ff;
+          font-weight: 500;
+        }
+        
+        .user-dropdown-header {
+          padding: 8px 16px;
+          color: #666;
+        }
+        
+        .user-dropdown-link {
+          display: flex;
+          align-items: center;
+          cursor: pointer;
+          padding: 4px 8px;
+          border-radius: 4px;
+          transition: all 0.3s;
+        }
+        
+        .user-dropdown-link:hover {
+          background-color: rgba(0,0,0,0.04);
+        }
+      `}</style>
+    </Header>
+  );
+};
+
+export default UserHeader;

@@ -8,9 +8,13 @@ import Link from 'next/link'
 
 import {
     AppstoreOutlined,
-    MailOutlined,
-    SettingOutlined,
     TeamOutlined,
+    HomeOutlined,
+    BankOutlined,
+    CommentOutlined,
+    DollarOutlined,
+    BookOutlined,
+    SettingOutlined,
 } from '@ant-design/icons';
 type MenuItem = Required<MenuProps>['items'][number];
 
@@ -19,76 +23,62 @@ const AdminSideBar = () => {
     const { collapseMenu } = useContext(AdminContext)!;
 
     const items: MenuItem[] = [
-
         {
             key: 'grp',
-            label: 'Minh Dev',
+            label: 'Smart Hotel',
             type: 'group',
             children: [
                 {
                     key: "dashboard",
-                    label: <Link href={"/dashboard"}>Dashboard</Link>,
+                    label: <Link href={"/dashboard"}>Tổng quan</Link>,
                     icon: <AppstoreOutlined />,
                 },
                 {
                     key: "users",
-                    label: <Link href={"/dashboard/user"}>Manage Users</Link>,
+                    label: <Link href={"/dashboard/user"}>Quản lý người dùng</Link>,
                     icon: <TeamOutlined />,
                 },
                 {
-                    key: 'sub1',
-                    label: 'Navigation One',
-                    icon: <MailOutlined />,
-                    children: [
-                        {
-                            key: 'g1',
-                            label: 'Item 1',
-                            type: 'group',
-                            children: [
-                                { key: '1', label: 'Option 1' },
-                                { key: '2', label: 'Option 2' },
-                            ],
-                        },
-                        {
-                            key: 'g2',
-                            label: 'Item 2',
-                            type: 'group',
-                            children: [
-                                { key: '3', label: 'Option 3' },
-                                { key: '4', label: 'Option 4' },
-                            ],
-                        },
-                    ],
+                    key: "hotels",
+                    label: <Link href={"/dashboard/hotels"}>Quản lý khách sạn</Link>,
+                    icon: <HomeOutlined />,
                 },
                 {
-                    key: 'sub2',
-                    label: 'Navigation Two',
-                    icon: <AppstoreOutlined />,
-                    children: [
-                        { key: '5', label: 'Option 5' },
-                        { key: '6', label: 'Option 6' },
-                        {
-                            key: 'sub3',
-                            label: 'Submenu',
-                            children: [
-                                { key: '7', label: 'Option 7' },
-                                { key: '8', label: 'Option 8' },
-                            ],
-                        },
-                    ],
+                    key: "rooms",
+                    label: <Link href={"/dashboard/rooms"}>Quản lý phòng</Link>,
+                    icon: <BankOutlined />,
+                },
+                {
+                    key: "bookings",
+                    label: <Link href={"/dashboard/bookings"}>Quản lý đặt phòng</Link>,
+                    icon: <BookOutlined />,
+                },
+                {
+                    key: "payments",
+                    label: <Link href={"/dashboard/payments"}>Quản lý thanh toán</Link>,
+                    icon: <DollarOutlined />,
+                },
+                {
+                    key: "reviews",
+                    label: <Link href={"/dashboard/reviews"}>Quản lý đánh giá</Link>,
+                    icon: <CommentOutlined />,
                 },
                 {
                     type: 'divider',
                 },
                 {
-                    key: 'sub4',
-                    label: 'Navigation Three',
+                    key: 'settings',
+                    label: 'Cài đặt hệ thống',
                     icon: <SettingOutlined />,
                     children: [
-                        { key: '9', label: 'Option 9' },
-                        { key: '10', label: 'Option 10' },
-                        { key: '11', label: 'Option 11' },
-                        { key: '12', label: 'Option 12' },
+                        { 
+                            key: 'general', 
+                            label: <Link href={"/dashboard/settings/general"}>Cài đặt chung</Link>
+                        },
+                        { 
+                            key: 'appearance', 
+                            label: <Link href={"/dashboard/settings/appearance"}>Giao diện</Link>
+                        },
                     ],
                 },
             ],

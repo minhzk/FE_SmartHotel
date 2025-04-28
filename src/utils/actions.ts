@@ -74,3 +74,47 @@ export const handleDeleteUserAction = async (id: any) => {
     revalidateTag("list-users")
     return res;
 }
+
+export const handleCreateHotelAction = async (data: any) => {
+    const session = await auth();
+    const res = await sendRequest<IBackendRes<any>>({
+        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/hotels`,
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${session?.user?.access_token}`,
+        },
+        body: data
+    });
+    
+    revalidateTag("list-hotels");
+    return res;
+};
+
+export const handleUpdateHotelAction = async (data: any) => {
+    const session = await auth();
+    const res = await sendRequest<IBackendRes<any>>({
+        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/hotels`,
+        method: "PATCH",
+        headers: {
+            Authorization: `Bearer ${session?.user?.access_token}`,
+        },
+        body: data
+    });
+    
+    revalidateTag("list-hotels");
+    return res;
+};
+
+export const handleDeleteHotelAction = async (id: string) => {
+    const session = await auth();
+    const res = await sendRequest<IBackendRes<any>>({
+        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/hotels/${id}`,
+        method: "DELETE",
+        headers: {
+            Authorization: `Bearer ${session?.user?.access_token}`,
+        },
+    });
+    
+    revalidateTag("list-hotels");
+    return res;
+};

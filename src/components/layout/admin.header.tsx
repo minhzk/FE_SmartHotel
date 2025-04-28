@@ -1,33 +1,31 @@
 'use client';
 import { AdminContext } from '@/library/admin.context';
-import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
-import { Button, Layout } from 'antd';
+import { MenuFoldOutlined, MenuUnfoldOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
+import { Button, Layout, Dropdown, Space, Avatar } from 'antd';
 import { useContext } from 'react';
-import { DownOutlined, SmileOutlined } from '@ant-design/icons';
-import type { MenuProps } from 'antd';
-import { Dropdown, Space } from 'antd';
-import { useSession } from "next-auth/react"
-import { signOut } from "next-auth/react"
+import { signOut } from "next-auth/react";
+import Link from 'next/link';
 
 const AdminHeader = (props: any) => {
-    // const { data: session, status } = useSession()
-    const {session} = props
+    const {session} = props;
     const { Header } = Layout;
     const { collapseMenu, setCollapseMenu } = useContext(AdminContext)!;
 
-    const items: MenuProps['items'] = [
+    const items = [
         {
-            key: '1',
-            label: (
-                <span>
-                    Profile
-                </span>
-            ),
+            key: 'profile',
+            icon: <UserOutlined />,
+            label: <Link href="/profile">Thông tin cá nhân</Link>,
         },
         {
-            key: '2',
+            key: 'divider',
+            type: 'divider',
+        },
+        {
+            key: 'logout',
             danger: true,
-            label: <span onClick={() => signOut()}>Sign Out</span>,
+            icon: <LogoutOutlined />,
+            label: <span onClick={() => signOut({ callbackUrl: '/' })}>Đăng xuất</span>,
         },
     ];
 
@@ -44,13 +42,7 @@ const AdminHeader = (props: any) => {
             >
                 <Button
                     type="text"
-                    icon={
-                        collapseMenu ? (
-                            <MenuUnfoldOutlined />
-                        ) : (
-                            <MenuFoldOutlined />
-                        )
-                    }
+                    icon={collapseMenu ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
                     onClick={() => setCollapseMenu(!collapseMenu)}
                     style={{
                         fontSize: '16px',
@@ -58,18 +50,29 @@ const AdminHeader = (props: any) => {
                         height: 64,
                     }}
                 />
-                <Dropdown menu={{ items }}>
+                
+                <Dropdown menu={{ items }} trigger={['click']}>
                     <a
                         onClick={(e) => e.preventDefault()}
                         style={{
                             color: 'unset',
-                            lineHeight: '0 !important',
+                            display: 'flex',
+                            alignItems: 'center',
                             marginRight: 20,
                         }}
                     >
                         <Space>
-                            Welcome {session?.user?.email ?? ""}
-                            <DownOutlined />
+                            <Avatar 
+                                size="default" 
+                                src={session?.user?.avatar}
+                                style={{ 
+                                    backgroundColor: session?.user?.avatar ? 'transparent' : '#1890ff',
+                                }}
+                                icon={!session?.user?.avatar && <UserOutlined />}
+                            />
+                            <span>
+                                {session?.user?.name || session?.user?.email || "Admin"}
+                            </span>
                         </Space>
                     </a>
                 </Dropdown>

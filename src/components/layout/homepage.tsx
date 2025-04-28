@@ -5,11 +5,13 @@ import { Tabs, Input, DatePicker, Button, Card, Row, Col, Typography, Dropdown, 
 import { useState } from "react"
 import dayjs from 'dayjs'
 import type { TabsProps } from 'antd';
+import { useRouter } from 'next/navigation';
 
 const { Title, Text, Paragraph } = Typography;
 const { RangePicker } = DatePicker;
 
 const HomePage = () => {
+    const router = useRouter();
     const [adults, setAdults] = useState(1);
     const [rooms, setRooms] = useState(1);
     const [children, setChildren] = useState(0);
@@ -103,39 +105,50 @@ const HomePage = () => {
             id: 1,
             name: 'Hà Nội',
             image: 'https://vcdn1-dulich.vnecdn.net/2022/05/12/Hanoi2-1652338755-3632-1652338809.jpg?w=0&h=0&q=100&dpr=2&fit=crop&s=NxMN93PTvOTnHNryMx3xJw',
-            hotels: 458
+            hotels: 458,
+            slug: 'ha noi'
         },
         {
             id: 2,
             name: 'Hồ Chí Minh',
             image: 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?q=80&w=1000',
-            hotels: 672
+            hotels: 672,
+            slug: 'ho chi minh'
         },
         {
             id: 3,
             name: 'Đà Nẵng',
             image: 'https://vcdn1-dulich.vnecdn.net/2022/06/03/cau-vang-jpeg-mobile-4171-1654247848.jpg?w=0&h=0&q=100&dpr=1&fit=crop&s=xrjEn1shZLiHomFix1sHNQ',
-            hotels: 325
+            hotels: 325,
+            slug: 'da nang'
         },
         {
             id: 4,
             name: 'Nha Trang',
             image: 'https://vcdn1-dulich.vnecdn.net/2022/05/09/shutterstock-280926449-6744-15-3483-9174-1652070682.jpg?w=0&h=0&q=100&dpr=1&fit=crop&s=bGCo6Rv6DseMDE_07TT1Aw',
-            hotels: 286
+            hotels: 286,
+            slug: 'nha trang'
         },
         {
             id: 5, 
             name: 'Đà Lạt',
             image: 'https://samtenhills.vn/wp-content/uploads/2024/01/kham-pha-4-khu-du-lich-tam-linh-da-lat-noi-tieng-bat-nhat.jpg',
-            hotels: 198
+            hotels: 198,
+            slug: 'da lat'
         },
         {
             id: 6,
             name: 'Phú Quốc',
             image: 'https://images.unsplash.com/photo-1590001155093-a3c66ab0c3ff?q=80&w=1000',
-            hotels: 145
+            hotels: 145,
+            slug: 'phu quoc'
         }
     ];
+
+    // Hàm xử lý chuyển hướng khi click vào destination
+    const handleDestinationClick = (slug: string) => {
+        router.push(`/hotels?city=${encodeURIComponent(slug)}`);
+    };
 
     // Các tab tìm kiếm
     const items: TabsProps['items'] = [
@@ -262,6 +275,7 @@ const HomePage = () => {
                                 hoverable
                                 cover={<Image alt={destination.name} src={destination.image} style={{ height: '200px', objectFit: 'cover' }} />}
                                 style={{ marginBottom: '16px' }}
+                                onClick={() => handleDestinationClick(destination.slug)}
                             >
                                 <Card.Meta 
                                     title={destination.name} 

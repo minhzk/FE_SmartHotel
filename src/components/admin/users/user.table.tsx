@@ -102,10 +102,10 @@ const UserTable = (props: IProps) => {
                 rowKey={"_id"}
                 pagination={
                     {
-                        current: meta.current,
-                        pageSize: meta.pageSize,
+                        current: meta?.current,
+                        pageSize: meta?.pageSize,
                         showSizeChanger: true,
-                        total: meta.total,
+                        total: meta?.total,
                         showTotal: (total, range) => { return (<div> {range[0]}-{range[1]} trên {total} rows</div>) }
                     }
                 }
