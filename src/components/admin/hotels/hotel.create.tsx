@@ -7,6 +7,11 @@ import { useState } from "react";
 import type { RcFile, UploadFile, UploadProps } from 'antd/es/upload/interface';
 import { sendRequest } from "@/utils/api";
 
+// Thêm định nghĩa interface cho file upload với cloudinary_id
+interface CustomUploadFile extends UploadFile {
+    cloudinary_id?: string;
+}
+
 interface IProps {
     isCreateModalOpen: boolean;
     setIsCreateModalOpen: (v: boolean) => void;
@@ -16,8 +21,9 @@ const HotelCreate = (props: IProps) => {
     const { isCreateModalOpen, setIsCreateModalOpen } = props;
     const [form] = Form.useForm();
     const [loading, setLoading] = useState<boolean>(false);
-    const [fileList, setFileList] = useState<UploadFile[]>([]);
+    const [fileList, setFileList] = useState<CustomUploadFile[]>([]);
     const [uploadingImages, setUploadingImages] = useState<boolean>(false);
+    const [initialLoadDone, setInitialLoadDone] = useState(true);
 
     const handleCancel = () => {
         form.resetFields();
@@ -29,17 +35,33 @@ const HotelCreate = (props: IProps) => {
         try {
             setLoading(true);
             
-            // Process Cloudinary image data
-            const images = fileList.map(file => ({
-                url: file.url || '',
-                cloudinary_id: file.cloudinary_id || '',
-                description: file.name || 'Hotel image'
-            }));
+            // Process images: logic giống với hotel.update
+            const images = fileList.map(file => {
+                const isCloudinaryUrl = file.url?.includes('res.cloudinary.com') || 
+                                       file.thumbUrl?.includes('res.cloudinary.com');
+                
+                console.log('Processing image:', {
+                    name: file.name,
+                    isCloudinaryUrl,
+                    url: file.url,
+                    cloudinary_id: file.cloudinary_id || file.uid
+                });
+                
+                return {
+                    url: file.url || file.thumbUrl || '',
+                    cloudinary_id: file.cloudinary_id || 
+                        (typeof file.uid === 'string' && file.uid.includes('smarthotel/') ? file.uid : ''),
+                    description: file.name || 'Hotel image'
+                };
+            });
             
-            // Prepare payload with location
+            const validImages = images.filter(img => img.url && img.url.trim() !== '');
+            
+            console.log('Images sending to API:', validImages);
+            
             const payload = {
                 ...values,
-                rating: Number(values.rating || 5),
+                rating: Number(values.rating || 0),
                 min_price: Number(values.min_price || 0),
                 max_price: Number(values.max_price || 0),
                 max_capacity: Number(values.max_capacity || 1),
@@ -47,7 +69,7 @@ const HotelCreate = (props: IProps) => {
                     latitude: Number(values.latitude || 0),
                     longitude: Number(values.longitude || 0),
                 },
-                images
+                images: validImages
             };
 
             await handleCreateHotelAction(payload);
@@ -76,10 +98,10 @@ const HotelCreate = (props: IProps) => {
         try {
             setUploadingImages(true);
             
-            // Convert file to base64
             const base64 = await convertFileToBase64(file);
             
-            // Upload to Cloudinary via our backend
+            console.log('Uploading file to Cloudinary:', file.name);
+            
             const res = await sendRequest<IBackendRes<any>>({
                 url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/uploads/base64`,
                 method: 'POST',
@@ -89,23 +111,30 @@ const HotelCreate = (props: IProps) => {
                 }
             });
             
-            if (res?.data) {
-                // Create new file with Cloudinary URL
-                const newFile: UploadFile = {
+            console.log('Cloudinary response:', res?.data);
+            
+            if (res?.data && res?.data?.secure_url) {
+                const newFile: CustomUploadFile = {
                     uid: res.data.public_id,
                     name: file.name,
                     status: 'done',
                     url: res.data.secure_url,
                     thumbUrl: res.data.secure_url,
-                    cloudinary_id: res.data.public_id,
+                    cloudinary_id: res.data.public_id
                 };
                 
-                setFileList(prev => [...prev, newFile]);
+                setFileList(prev => {
+                    const updatedList = [...prev, newFile];
+                    console.log('fileList sau khi thêm ảnh mới:', updatedList);
+                    return updatedList;
+                });
+                
+                message.success(`Đã tải lên "${file.name}" thành công`);
             } else {
-                message.error('Tải ảnh lên thất bại');
+                message.error('Tải ảnh lên thất bại: Không nhận được URL');
+                console.error('Missing secure_url in Cloudinary response:', res);
             }
             
-            // Return false to prevent default upload behavior
             return false;
         } catch (error) {
             console.error("Upload error:", error);
@@ -126,21 +155,22 @@ const HotelCreate = (props: IProps) => {
     };
 
     const handleChange: UploadProps['onChange'] = ({ fileList: newFileList }) => {
-        // Only update fileList for file deletions, additions are handled by beforeUpload
-        setFileList(prev => {
-            // Find files that were removed
-            const removedFiles = prev.filter(
+        const isRemoval = fileList.length > newFileList.length;
+        
+        if (isRemoval) {
+            const removedFiles = fileList.filter(
                 p => !newFileList.some(n => n.uid === p.uid)
             );
             
-            // If files were removed, handle the removal
-            if (removedFiles.length > 0) {
-                return newFileList;
-            }
+            removedFiles.forEach(file => {
+                if (file.cloudinary_id) {
+                    console.log('File with cloudinary_id removed:', file.cloudinary_id);
+                }
+            });
             
-            // If no removals happened, keep the current state
-            return prev;
-        });
+            setFileList(newFileList as CustomUploadFile[]);
+            console.log('fileList sau khi xóa ảnh:', newFileList);
+        }
     };
 
     const uploadButton = (
@@ -167,7 +197,7 @@ const HotelCreate = (props: IProps) => {
                 initialValues={{
                     is_active: true,
                     accept_deposit: true,
-                    rating: 5,
+                    rating: null,
                     city: 'ha noi',
                 }}
             >
@@ -250,7 +280,6 @@ const HotelCreate = (props: IProps) => {
                                 </span>
                             }
                             name="rating"
-                            rules={[{ required: true, message: 'Vui lòng nhập đánh giá!' }]}
                         >
                             <InputNumber min={1} max={5} placeholder="Số sao" style={{ width: '100%' }} />
                         </Form.Item>
@@ -290,6 +319,7 @@ const HotelCreate = (props: IProps) => {
                             label="Sức chứa tối đa"
                             name="max_capacity"
                             tooltip="Số lượng người tối đa mà khách sạn có thể phục vụ"
+                            rules={[{ required: true, message: 'Vui lòng nhập số người tối đa!' }]}
                         >
                             <InputNumber min={1} style={{ width: '100%' }} />
                         </Form.Item>
@@ -352,7 +382,6 @@ const HotelCreate = (props: IProps) => {
                         multiple
                         maxCount={10}
                         customRequest={({ onSuccess }) => {
-                            // Dummy request to work with our custom upload
                             setTimeout(() => {
                                 onSuccess?.("ok", undefined as any);
                             }, 0);
