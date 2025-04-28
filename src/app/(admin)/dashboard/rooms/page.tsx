@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import RoomTable from "@/components/admin/room.table";
+import RoomTable from "@/components/admin/rooms/room.table";
 import { sendRequest } from "@/utils/api";
 
 interface IProps {
