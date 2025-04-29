@@ -313,3 +313,28 @@ export const handleReplyToReviewAction = async (data: {
 
     return res.json();
 };
+
+export const handleUpdateBookingAction = async (data: any) => {
+    'use server';
+
+    const session = await auth();
+
+    const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/bookings/${data._id}`,
+        {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${session?.user?.access_token}`,
+            },
+            body: JSON.stringify(data),
+        }
+    );
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw error;
+    }
+
+    return res.json();
+};

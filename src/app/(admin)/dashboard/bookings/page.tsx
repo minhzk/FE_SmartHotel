@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import BookingTable from "@/components/admin/booking.table";
+import BookingTable from "@/components/admin/bookings/booking.table";
 import { sendRequest } from "@/utils/api";
 
 interface IProps {
