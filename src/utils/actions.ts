@@ -226,3 +226,90 @@ export const handleUpdateRoomAvailabilityStatusAction = async (body: any) => {
 
     return res.json();
 };
+
+export const handleUpdatePaymentStatusAction = async (data: {
+    paymentId: string;
+    status: string;
+}) => {
+    'use server';
+
+    const session = await auth();
+
+    const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/payments/${data.paymentId}/status`,
+        {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${session?.user?.access_token}`,
+            },
+            body: JSON.stringify({ status: data.status }),
+        }
+    );
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw error;
+    }
+
+    return res.json();
+};
+
+export const handleUpdateReviewStatusAction = async (data: {
+    reviewId: string;
+    status: string;
+}) => {
+    'use server';
+
+    const session = await auth();
+
+    const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/reviews/${data.reviewId}/status`,
+        {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${session?.user?.access_token}`,
+            },
+            body: JSON.stringify({ status: data.status }),
+        }
+    );
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw error;
+    }
+
+    return res.json();
+};
+
+export const handleReplyToReviewAction = async (data: {
+    reviewId: string;
+    responseText: string;
+}) => {
+    'use server';
+
+    const session = await auth();
+
+    const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/reviews/${data.reviewId}/reply`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${session?.user?.access_token}`,
+            },
+            body: JSON.stringify({
+                response_text: data.responseText,
+                response_by: session?.user?.name || 'Admin',
+            }),
+        }
+    );
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw error;
+    }
+
+    return res.json();
+};

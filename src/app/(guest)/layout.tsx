@@ -1,11 +1,9 @@
 'use client';
 
 import UserHeader from "@/components/layout/user.header";
-import { auth } from "@/auth";
-import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { Layout, ConfigProvider } from "antd";
 import Footer from "@/components/layout/user.footer";
-import { Session } from "next-auth";
 
 const { Content } = Layout;
 
@@ -14,16 +12,8 @@ export default function GuestLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [session, setSession] = useState<Session | null>(null);
-
-  useEffect(() => {
-    const getSession = async () => {
-      const currentSession = await auth();
-      setSession(currentSession);
-    };
-    
-    getSession();
-  }, []);
+  // Use next-auth's useSession hook instead of calling auth() directly
+  const { data: session } = useSession();
 
   return (
     <ConfigProvider

@@ -73,7 +73,7 @@ const HotelCard: React.FC<IHotelCardProps> = ({ hotel }) => {
               
               <div className="hotel-location">
                 <EnvironmentOutlined style={{ marginRight: 5 }} />
-                <Text>{hotel.address}, {hotel.city}</Text>
+                <Text>{hotel.address}</Text>
               </div>
               
               {hotel.ai_summary?.short_description && (

@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import PaymentTable from "@/components/admin/payment.table";
+import PaymentTable from "@/components/admin/payments/payment.table";
 import { sendRequest } from "@/utils/api";
 
 interface IProps {
