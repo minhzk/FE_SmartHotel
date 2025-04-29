@@ -1,6 +1,6 @@
 'use client'
 import { EyeTwoTone, FilterOutlined } from "@ant-design/icons";
-import { Button, Table, Tag, DatePicker, Select, Form, Row, Col, Card, Space, Tooltip } from "antd";
+import { Button, Table, Tag, DatePicker, Select, Form, Row, Col, Card, Space, Tooltip, message } from "antd";
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from "react";
 import PaymentDetail from "./payment.detail";
@@ -46,7 +46,7 @@ interface IPayment {
 }
 
 const PaymentTable = (props: IProps) => {
-    const { payments = [], meta = { current: 1, pageSize: 10, pages: 0, total: 0 } } = props;
+    const { payments: initialPayments = [], meta: initialMeta = { current: 1, pageSize: 10, pages: 0, total: 0 } } = props;
     const searchParams = useSearchParams();
     const pathname = usePathname();
     const { replace } = useRouter();
@@ -56,6 +56,57 @@ const PaymentTable = (props: IProps) => {
     const [selectedPayment, setSelectedPayment] = useState<any>(null);
     const [form] = Form.useForm();
     const [userDetails, setUserDetails] = useState<Record<string, { name: string, email: string }>>({});
+    
+    const [payments, setPayments] = useState<any[]>(initialPayments);
+    const [meta, setMeta] = useState(initialMeta);
+    const [loading, setLoading] = useState<boolean>(false);
+    
+    useEffect(() => {
+        fetchPayments();
+    }, [searchParams, session]);
+    
+    const fetchPayments = async () => {
+        if (!session?.user?.access_token) return;
+        
+        setLoading(true);
+        try {
+            const queryParams: any = {};
+            
+            if (searchParams.has('current')) queryParams.current = searchParams.get('current');
+            if (searchParams.has('pageSize')) queryParams.pageSize = searchParams.get('pageSize');
+            
+            if (searchParams.has('status')) queryParams.status = searchParams.get('status');
+            if (searchParams.has('paymentMethod')) queryParams.paymentMethod = searchParams.get('paymentMethod');
+            if (searchParams.has('paymentType')) queryParams.paymentType = searchParams.get('paymentType');
+            
+            if (searchParams.has('startDate') && searchParams.has('endDate')) {
+                const startDate = searchParams.get('startDate');
+                const endDate = searchParams.get('endDate');
+                queryParams.paymentDate = `${startDate},${endDate}`;
+            }
+            
+            console.log('Fetching payments with params:', queryParams);
+            
+            const res = await sendRequest({
+                url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/payments`,
+                method: 'GET',
+                queryParams: queryParams,
+                headers: {
+                    'Authorization': `Bearer ${session.user.access_token}`
+                }
+            });
+            
+            if (res?.data) {
+                setPayments(res.data.results || []);
+                setMeta(res.data.meta || initialMeta);
+            }
+        } catch (error) {
+            console.error('Error fetching payments:', error);
+            message.error('Không thể tải dữ liệu thanh toán');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         const fetchUserDetails = async () => {
@@ -229,6 +280,9 @@ const PaymentTable = (props: IProps) => {
         if (pagination && pagination.current) {
             const params = new URLSearchParams(searchParams);
             params.set('current', pagination.current);
+            if (pagination.pageSize) {
+                params.set('pageSize', pagination.pageSize);
+            }
             replace(`${pathname}?${params.toString()}`);
         }
     };
@@ -236,7 +290,6 @@ const PaymentTable = (props: IProps) => {
     const onFinish = (values: any) => {
         const params = new URLSearchParams(searchParams);
         
-        // Reset to first page when filtering
         params.set('current', '1');
         
         if (values.dateRange) {
@@ -354,6 +407,7 @@ const PaymentTable = (props: IProps) => {
                     dataSource={payments}
                     columns={columns}
                     rowKey={"_id"}
+                    loading={loading}
                     pagination={{
                         current: meta.current,
                         pageSize: meta.pageSize,
