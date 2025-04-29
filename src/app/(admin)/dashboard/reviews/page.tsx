@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import ReviewTable from "@/components/admin/review.table";
+import ReviewTable from "@/components/admin/reviews/review.table";
 import { sendRequest } from "@/utils/api";
 
 interface IProps {
