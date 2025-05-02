@@ -114,11 +114,11 @@ const UserHeader = ({ session }: UserHeaderProps) => {
         position: 'sticky',
         top: 0,
         zIndex: 1000,
-        width: '100%',
+        width: '100%', // Đảm bảo width là 100% để fit với container cha
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 50px',
+        padding: '0 20px', // Giảm padding để không bị tràn
         background: scrolled ? 'white' : 'transparent',
         boxShadow: scrolled ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
         transition: 'all 0.3s',
@@ -200,6 +200,8 @@ const UserHeader = ({ session }: UserHeaderProps) => {
 
       <style jsx global>{`
         .user-header {
+          width: 100% !important;
+          box-sizing: border-box;
           backdrop-filter: blur(5px);
         }
         
