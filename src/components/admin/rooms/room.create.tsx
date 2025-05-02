@@ -1,6 +1,6 @@
 'use client'
 
-import { InfoCircleOutlined, PlusOutlined, LoadingOutlined } from "@ant-design/icons";
+import { InfoCircleOutlined, PlusOutlined, LoadingOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import { Button, Col, Form, Input, InputNumber, Modal, Row, Select, Switch, Tooltip, Upload, message } from "antd";
 import { useState } from "react";
 import type { RcFile, UploadFile, UploadProps } from 'antd/es/upload/interface';
@@ -10,6 +10,19 @@ import { handleCreateRoomAction } from "@/utils/actions";
 // Định nghĩa interface cho file upload với cloudinary_id
 interface CustomUploadFile extends UploadFile {
     cloudinary_id?: string;
+}
+
+// Thêm enum BedType từ backend
+enum BedType {
+    SINGLE = 'single',
+    DOUBLE = 'double',
+    QUEEN = 'queen',
+    KING = 'king',
+    TWIN = 'twin',
+    SOFA = 'sofa_bed',
+    BUNK = 'bunk_bed',
+    MURPHY = 'murphy_bed',
+    FUTON = 'futon',
 }
 
 interface IRoomCreateProps {
@@ -64,9 +77,9 @@ const RoomCreate = ({ isCreateModalOpen, setIsCreateModalOpen, hotels = [], onSu
                 name: values.name,
                 hotel_id: values.hotel_id,
                 room_type: values.room_type,
+                description: values.description,
                 price_per_night: Number(values.price_per_night || 0),
                 capacity: Number(values.capacity || 2),
-                description: values.description,
                 max_adults: Number(values.max_adults || 2),
                 max_children: Number(values.max_children || 0),
                 size: Number(values.size || 0),
@@ -74,6 +87,7 @@ const RoomCreate = ({ isCreateModalOpen, setIsCreateModalOpen, hotels = [], onSu
                 is_bookable: values.is_bookable,
                 is_active: values.is_active,
                 amenities: values.amenities || [],
+                bed_configuration: values.bed_configuration || [],
                 images: validImages
             };
 
@@ -221,6 +235,18 @@ const RoomCreate = ({ isCreateModalOpen, setIsCreateModalOpen, hotels = [], onSu
         </div>
     );
 
+    const bedTypes = [
+        { label: 'Giường đơn', value: BedType.SINGLE },
+        { label: 'Giường đôi', value: BedType.DOUBLE },
+        { label: 'Giường Queen', value: BedType.QUEEN },
+        { label: 'Giường King', value: BedType.KING },
+        { label: 'Giường Twin', value: BedType.TWIN },
+        { label: 'Giường sofa', value: BedType.SOFA },
+        { label: 'Giường tầng', value: BedType.BUNK },
+        { label: 'Giường xếp', value: BedType.MURPHY },
+        { label: 'Giường futon', value: BedType.FUTON },
+    ];
+
     return (
         <Modal
             title="Thêm mới phòng"
@@ -241,7 +267,8 @@ const RoomCreate = ({ isCreateModalOpen, setIsCreateModalOpen, hotels = [], onSu
                     capacity: 2,
                     max_adults: 2,
                     max_children: 0,
-                    number_of_rooms: 1
+                    number_of_rooms: 1,
+                    bed_configuration: [{ type: BedType.DOUBLE, count: 1 }]
                 }}
             >
                 <Row gutter={[16, 0]}>
@@ -401,6 +428,66 @@ const RoomCreate = ({ isCreateModalOpen, setIsCreateModalOpen, hotels = [], onSu
                         ]}
                     />
                 </Form.Item>
+
+                <Form.List name="bed_configuration">
+                    {(fields, { add, remove }) => (
+                        <>
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                                <h4 style={{ margin: 0 }}>Cấu hình giường</h4>
+                                <Button 
+                                    type="dashed" 
+                                    onClick={() => add({ type: BedType.SINGLE, count: 1 })} 
+                                    icon={<PlusOutlined />} 
+                                    style={{ marginLeft: 8 }}
+                                >
+                                    Thêm loại giường
+                                </Button>
+                            </div>
+                            {fields.map(({ key, name, ...restField }) => (
+                                <div key={key} style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                                    <Form.Item
+                                        {...restField}
+                                        name={[name, 'type']}
+                                        style={{ marginBottom: 0, flex: 1, marginRight: 8 }}
+                                        rules={[{ required: true, message: 'Chọn loại giường' }]}
+                                    >
+                                        <Select placeholder="Loại giường" options={bedTypes} />
+                                    </Form.Item>
+                                    
+                                    <Form.Item
+                                        {...restField}
+                                        name={[name, 'count']}
+                                        style={{ marginBottom: 0, width: 120, marginRight: 8 }}
+                                        rules={[{ required: true, message: 'Nhập số lượng' }]}
+                                    >
+                                        <InputNumber
+                                            placeholder="Số lượng"
+                                            min={1}
+                                            style={{ width: '100%' }}
+                                        />
+                                    </Form.Item>
+                                    
+                                    <MinusCircleOutlined
+                                        onClick={() => remove(name)}
+                                        style={{ color: '#ff4d4f' }}
+                                    />
+                                </div>
+                            ))}
+                            {fields.length === 0 && (
+                                <Form.Item>
+                                    <Button 
+                                        type="dashed" 
+                                        onClick={() => add({ type: BedType.DOUBLE, count: 1 })} 
+                                        block 
+                                        icon={<PlusOutlined />}
+                                    >
+                                        Thêm cấu hình giường
+                                    </Button>
+                                </Form.Item>
+                            )}
+                        </>
+                    )}
+                </Form.List>
 
                 <Form.Item
                     label="Hình ảnh"

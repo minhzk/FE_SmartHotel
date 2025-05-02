@@ -137,6 +137,7 @@ export const handleCreateRoomAction = async (body: any) => {
         throw error;
     }
 
+    revalidateTag('list-rooms');
     return res.json();
 };
 
@@ -159,6 +160,7 @@ export const handleUpdateRoomAction = async (body: any) => {
         throw error;
     }
 
+    revalidateTag('list-rooms');
     return res.json();
 };
 
@@ -180,6 +182,7 @@ export const handleDeleteRoomAction = async (id: string) => {
         throw error;
     }
 
+    revalidateTag('list-rooms');
     return res.json();
 };
 
@@ -202,6 +205,7 @@ export const handleGenerateRoomAvailabilityAction = async (body: any) => {
         throw error;
     }
 
+    revalidateTag('room-availability');
     return res.json();
 };
 
@@ -224,6 +228,7 @@ export const handleUpdateRoomAvailabilityStatusAction = async (body: any) => {
         throw error;
     }
 
+    revalidateTag('room-availability');
     return res.json();
 };
 
@@ -252,6 +257,7 @@ export const handleUpdatePaymentStatusAction = async (data: {
         throw error;
     }
 
+    revalidateTag('list-payments');
     return res.json();
 };
 
@@ -280,6 +286,7 @@ export const handleUpdateReviewStatusAction = async (data: {
         throw error;
     }
 
+    revalidateTag('list-reviews');
     return res.json();
 };
 
@@ -311,6 +318,7 @@ export const handleReplyToReviewAction = async (data: {
         throw error;
     }
 
+    revalidateTag('list-reviews');
     return res.json();
 };
 
@@ -336,5 +344,10 @@ export const handleUpdateBookingAction = async (data: any) => {
         throw error;
     }
 
+    revalidateTag('list-bookings');
+    // Nếu cập nhật trạng thái thanh toán, cũng làm mới danh sách payments
+    if (data.payment_status) {
+        revalidateTag('list-payments');
+    }
     return res.json();
 };

@@ -11,6 +11,7 @@ import RoomUpdate from "./room.update";
 import RoomAvailability from "./room.availability";
 import { sendRequest } from "@/utils/api";
 import { handleDeleteRoomAction } from "@/utils/actions";
+import { useSession } from "next-auth/react";
 
 interface IRoomTableProps {
     rooms?: IRoom[];
@@ -64,6 +65,7 @@ const RoomTable = ({ rooms = [], meta = { current: 1, pageSize: 10, pages: 0, to
     });
     const [hotels, setHotels] = useState<any[]>([]);
     const searchInput = useRef<InputRef>(null);
+    const { data: session } = useSession();
 
     const [isAvailabilityModalOpen, setIsAvailabilityModalOpen] = useState<boolean>(false);
     const [selectedRoomForAvailability, setSelectedRoomForAvailability] = useState<IRoom | null>(null);
@@ -95,6 +97,36 @@ const RoomTable = ({ rooms = [], meta = { current: 1, pageSize: 10, pages: 0, to
         
         fetchHotels();
     }, []);
+
+    const fetchRooms = async () => {
+        try {
+            setLoading(true);
+            const res = await sendRequest<IBackendRes<any>>({
+                url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/rooms`,
+                method: 'GET',
+                queryParams: { 
+                    current: pagination.current, 
+                    pageSize: pagination.pageSize 
+                },
+                headers: {
+                    'Authorization': `Bearer ${session?.user?.access_token}`
+                }
+            });
+            
+            if (res?.data) {
+                setDataSource(res.data.results || []);
+                setPagination({
+                    ...pagination,
+                    total: res.data.meta?.total || 0
+                });
+            }
+        } catch (error) {
+            console.error('Error fetching rooms:', error);
+            message.error('Không thể tải dữ liệu phòng');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleUpdate = (record: IRoom) => {
         setDataUpdate(record);
@@ -376,9 +408,7 @@ const RoomTable = ({ rooms = [], meta = { current: 1, pageSize: 10, pages: 0, to
                 isCreateModalOpen={isCreateModalOpen} 
                 setIsCreateModalOpen={setIsCreateModalOpen} 
                 hotels={hotels}
-                onSuccess={() => {
-                    window.location.reload();
-                }}
+                onSuccess={() => fetchRooms()}
             />
 
             <RoomUpdate 
@@ -387,9 +417,7 @@ const RoomTable = ({ rooms = [], meta = { current: 1, pageSize: 10, pages: 0, to
                 dataUpdate={dataUpdate} 
                 setDataUpdate={setDataUpdate} 
                 hotels={hotels}
-                onSuccess={() => {
-                    window.location.reload();
-                }}
+                onSuccess={() => fetchRooms()}
             />
             
             {selectedRoomForAvailability && (

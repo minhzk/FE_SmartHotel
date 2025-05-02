@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useState } from "react";
 import HotelCreate from "./hotel.create";
 import HotelUpdate from "./hotel.update";
+import HotelDetail from "./hotel.detail";
 
 interface IProps {
     hotels: any[];
@@ -26,6 +27,8 @@ const HotelTable = (props: IProps) => {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState<boolean>(false);
     const [dataUpdate, setDataUpdate] = useState<any>(null);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState<boolean>(false);
+    const [selectedHotel, setSelectedHotel] = useState<any>(null);
 
     const columns = [
         {
@@ -83,7 +86,10 @@ const HotelTable = (props: IProps) => {
                         <EyeTwoTone
                             twoToneColor="#1890ff" 
                             style={{ cursor: "pointer", marginRight: "20px" }}
-                            onClick={() => window.open(`/hotels/${record._id}`, '_blank')}
+                            onClick={() => {
+                                setSelectedHotel(record);
+                                setIsDetailModalOpen(true);
+                            }}
                         />
                         <EditTwoTone
                             twoToneColor="#f57800" 
@@ -155,6 +161,12 @@ const HotelTable = (props: IProps) => {
                 setIsUpdateModalOpen={setIsUpdateModalOpen}
                 dataUpdate={dataUpdate}
                 setDataUpdate={setDataUpdate}
+            />
+
+            <HotelDetail
+                isDetailModalOpen={isDetailModalOpen}
+                setIsDetailModalOpen={setIsDetailModalOpen}
+                hotel={selectedHotel}
             />
         </>
     )
