@@ -6,6 +6,7 @@ import { Button, Col, Form, Input, InputNumber, Modal, Row, Select, Switch, Tool
 import { useEffect, useState } from "react";
 import type { RcFile, UploadFile, UploadProps } from 'antd/es/upload/interface';
 import { sendRequest } from "@/utils/api";
+import { HOTEL_AMENITIES } from "@/constants/hotel.constants";
 
 // Thêm định nghĩa interface cho file upload với cloudinary_id
 interface CustomUploadFile extends UploadFile {
@@ -400,16 +401,7 @@ const HotelUpdate = (props: IProps) => {
                         mode="multiple"
                         placeholder="Chọn tiện ích"
                         style={{ width: '100%' }}
-                        options={[
-                            { label: 'WiFi', value: 'wifi' },
-                            { label: 'Hồ bơi', value: 'pool' },
-                            { label: 'Phòng gym', value: 'gym' },
-                            { label: 'Nhà hàng', value: 'restaurant' },
-                            { label: 'Bãi đỗ xe', value: 'parking' },
-                            { label: 'Spa', value: 'spa' },
-                            { label: 'Điều hòa', value: 'ac' },
-                            { label: 'Dịch vụ phòng', value: 'room_service' }
-                        ]}
+                        options={HOTEL_AMENITIES}
                     />
                 </Form.Item>
 

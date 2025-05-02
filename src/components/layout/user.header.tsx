@@ -11,10 +11,8 @@ import {
   ShoppingCartOutlined, 
   BellOutlined,
   HomeOutlined,
-  DollarOutlined,
-  SettingOutlined,
-  GlobalOutlined,
-  BookOutlined
+  LoginOutlined,
+  UserAddOutlined
 } from '@ant-design/icons';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -44,6 +42,7 @@ const UserHeader = ({ session }: UserHeaderProps) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Menu items cho người dùng đã đăng nhập
   const userMenuItems = [
     {
       key: 'account',
@@ -145,43 +144,58 @@ const UserHeader = ({ session }: UserHeaderProps) => {
       </div>
 
       <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-        <Badge count={3} size="small">
-          <Button 
-            type="text" 
-            icon={<BellOutlined style={{ fontSize: '18px' }} />} 
-            size="large"
-            shape="circle"
-          />
-        </Badge>
-
-        <Badge count={1} size="small">
-          <Button 
-            type="text" 
-            icon={<ShoppingCartOutlined style={{ fontSize: '18px' }} />} 
-            size="large"
-            shape="circle"
-            onClick={() => window.location.href = '/cart'}
-          />
-        </Badge>
-
-        <Dropdown menu={{ items: userMenuItems }} trigger={['click']} arrow>
-          <a onClick={(e) => e.preventDefault()} className="user-dropdown-link">
-            <Space>
-              <Avatar 
-                size="default" 
-                src={session?.user?.avatar} 
-                style={{ 
-                  backgroundColor: session?.user?.avatar ? 'transparent' : '#1890ff',
-                  cursor: 'pointer'
-                }}
-                icon={!session?.user?.avatar && <UserOutlined />}
+        {session?.user ? (
+          // Hiển thị khi người dùng đã đăng nhập
+          <>
+            <Badge count={3} size="small">
+              <Button 
+                type="text" 
+                icon={<BellOutlined style={{ fontSize: '18px' }} />} 
+                size="large"
+                shape="circle"
               />
-              <span style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {session?.user?.name || session?.user?.email || 'Tài khoản'}
-              </span>
-            </Space>
-          </a>
-        </Dropdown>
+            </Badge>
+
+            <Badge count={1} size="small">
+              <Button 
+                type="text" 
+                icon={<ShoppingCartOutlined style={{ fontSize: '18px' }} />} 
+                size="large"
+                shape="circle"
+                onClick={() => window.location.href = '/cart'}
+              />
+            </Badge>
+
+            <Dropdown menu={{ items: userMenuItems }} trigger={['click']} arrow>
+              <a onClick={(e) => e.preventDefault()} className="user-dropdown-link">
+                <Space>
+                  <Avatar 
+                    size="default" 
+                    src={session?.user?.avatar} 
+                    style={{ 
+                      backgroundColor: session?.user?.avatar ? 'transparent' : '#1890ff',
+                      cursor: 'pointer'
+                    }}
+                    icon={!session?.user?.avatar && <UserOutlined />}
+                  />
+                  <span style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {session?.user?.name || session?.user?.email || 'Tài khoản'}
+                  </span>
+                </Space>
+              </a>
+            </Dropdown>
+          </>
+        ) : (
+          // Hiển thị khi chưa đăng nhập
+          <Space>
+            <Link href="/auth/login">
+              <Button type="text" icon={<LoginOutlined />}>Đăng nhập</Button>
+            </Link>
+            <Link href="/auth/register">
+              <Button type="primary" icon={<UserAddOutlined />}>Đăng ký</Button>
+            </Link>
+          </Space>
+        )}
       </div>
 
       <style jsx global>{`

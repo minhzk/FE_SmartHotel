@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { sendRequest } from "@/utils/api";
 import { useSession } from "next-auth/react";
 import { EnvironmentOutlined } from '@ant-design/icons';
+import { HOTEL_AMENITIES } from "@/constants/hotel.constants";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -212,11 +213,14 @@ const HotelDetail = (props: IProps) => {
             <Divider orientation="left">Tiện ích</Divider>
             <Space wrap>
                 {hotel.amenities && hotel.amenities.length > 0 ? (
-                    hotel.amenities.map((amenity: string, index: number) => (
-                        <Tag key={index} color="blue">
-                            {amenity}
-                        </Tag>
-                    ))
+                    hotel.amenities.map((amenity: string, index: number) => {
+                        const amenityInfo = HOTEL_AMENITIES.find(a => a.value === amenity);
+                        return (
+                            <Tag key={index} color="blue" icon={amenityInfo?.icon}>
+                                {amenityInfo?.label || amenity}
+                            </Tag>
+                        );
+                    })
                 ) : (
                     <Text type="secondary">Không có thông tin về tiện ích</Text>
                 )}

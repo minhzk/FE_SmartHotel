@@ -1,7 +1,8 @@
 import React from 'react';
 import { Card, Row, Col, Typography, Rate, Button, Tag, Space, Image } from 'antd';
-import { EnvironmentOutlined, WifiOutlined, CoffeeOutlined, CarOutlined } from '@ant-design/icons';
+import { EnvironmentOutlined } from '@ant-design/icons';
 import Link from 'next/link';
+import { HOTEL_AMENITIES } from "@/constants/hotel.constants";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -10,11 +11,10 @@ interface IHotelCardProps {
 }
 
 const HotelCard: React.FC<IHotelCardProps> = ({ hotel }) => {
-  // Icon map cho tiện ích phổ biến
-  const amenityIcons: Record<string, React.ReactNode> = {
-    'wifi': <WifiOutlined />,
-    'parking': <CarOutlined />,
-    'breakfast': <CoffeeOutlined />,
+  // Lấy icon từ danh sách đã định nghĩa
+  const getAmenityIcon = (amenityValue: string) => {
+    const amenity = HOTEL_AMENITIES.find(item => item.value === amenityValue);
+    return amenity?.icon || null;
   };
   
   // Lấy hình ảnh đại diện
@@ -86,8 +86,8 @@ const HotelCard: React.FC<IHotelCardProps> = ({ hotel }) => {
             <div className="hotel-amenities">
               <Space size={[0, 8]} wrap>
                 {hotel.amenities?.slice(0, 4).map((amenity: string, index: number) => (
-                  <Tag key={index} icon={amenityIcons[amenity.toLowerCase()] || null}>
-                    {amenity}
+                  <Tag key={index} icon={getAmenityIcon(amenity)}>
+                    {HOTEL_AMENITIES.find(a => a.value === amenity)?.label || amenity}
                   </Tag>
                 ))}
                 {hotel.amenities?.length > 4 && (

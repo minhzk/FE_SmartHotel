@@ -6,6 +6,7 @@ interface IUser {
     name: string;
     email: string;
     access_token: string;
+    role?: string; // Thêm trường role
     phone?: string;
     avatar?: string;
 }

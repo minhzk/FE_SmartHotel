@@ -6,6 +6,7 @@ import { Button, Col, Form, Input, InputNumber, Modal, Row, Select, Switch, Tool
 import { useEffect, useState } from "react";
 import type { RcFile, UploadFile, UploadProps } from 'antd/es/upload/interface';
 import { sendRequest } from "@/utils/api";
+import { ROOM_AMENITIES } from "@/constants/room.constants";
 
 // Định nghĩa interface cho file upload với cloudinary_id
 interface CustomUploadFile extends UploadFile {
@@ -513,17 +514,7 @@ const RoomUpdate = ({ isUpdateModalOpen, setIsUpdateModalOpen, dataUpdate, setDa
                         mode="multiple"
                         placeholder="Chọn tiện nghi"
                         style={{ width: '100%' }}
-                        options={[
-                            { label: 'WiFi', value: 'wifi' },
-                            { label: 'TV', value: 'tv' },
-                            { label: 'Điều hòa', value: 'ac' },
-                            { label: 'Minibar', value: 'minibar' },
-                            { label: 'Két an toàn', value: 'safe' },
-                            { label: 'Ban công', value: 'balcony' },
-                            { label: 'Bồn tắm', value: 'bathtub' },
-                            { label: 'Máy sấy tóc', value: 'hairdryer' },
-                            { label: 'Bàn làm việc', value: 'workspace' }
-                        ]}
+                        options={ROOM_AMENITIES}
                     />
                 </Form.Item>
 
