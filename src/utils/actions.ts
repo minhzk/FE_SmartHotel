@@ -351,3 +351,33 @@ export const handleUpdateBookingAction = async (data: any) => {
     }
     return res.json();
 };
+
+export const createPaymentAction = async (data: {
+    booking_id: string;
+    payment_type: string;
+    payment_method: string;
+    redirect_url?: string;
+}) => {
+    'use server';
+
+    const session = await auth();
+
+    const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/payments`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${session?.user?.access_token}`,
+            },
+            body: JSON.stringify(data),
+        }
+    );
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw error;
+    }
+
+    return res.json();
+};

@@ -1,30 +1,146 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, Row, Col, Typography, Button, Tag, Divider, Image, Modal, Tooltip, Badge, Space } from 'antd';
+import { Card, Row, Col, Typography, Button, Tag, Divider, Image, Modal, Tooltip, Badge, Space, Form, Input, DatePicker, InputNumber, Select, message } from 'antd';
 import { 
   CheckCircleFilled, InfoCircleOutlined, UserOutlined, HomeOutlined, 
   WifiOutlined, CoffeeOutlined, AreaChartOutlined, CalendarOutlined,
-  PictureOutlined
+  PictureOutlined, PhoneOutlined, MailOutlined
 } from '@ant-design/icons';
+import { ROOM_AMENITIES } from "@/constants/room.constants";
+import { useRouter } from 'next/navigation';
+import dayjs from 'dayjs';
+import { sendRequest } from '@/utils/api';
+import { useSession } from 'next-auth/react';
 
 const { Title, Text, Paragraph } = Typography;
+const { RangePicker } = DatePicker;
 
 interface RoomProps {
   rooms: any[];
   checkInDate?: string;
   checkOutDate?: string;
   onSelectRoom?: (room: any) => void;
+  hotelId?: string;
 }
 
 const HotelRooms: React.FC<RoomProps> = ({ 
   rooms, 
   checkInDate, 
   checkOutDate,
-  onSelectRoom
+  onSelectRoom,
+  hotelId
 }) => {
+  const router = useRouter();
+  const { data: session } = useSession();
+  const [form] = Form.useForm();
+  
   const [selectedRoom, setSelectedRoom] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState<boolean>(false);
+  const [bookingRoom, setBookingRoom] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [dateRange, setDateRange] = useState<any[]>([]);
+  const [nights, setNights] = useState<number>(1);
+  const [totalAmount, setTotalAmount] = useState<number>(0);
+
+  const showBookingModal = (room: any) => {
+    if (!session) {
+      router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.href));
+      return;
+    }
+    
+    setBookingRoom(room);
+    
+    const today = dayjs();
+    const tomorrow = dayjs().add(1, 'day');
+    const defaultStartDate = checkInDate ? dayjs(checkInDate) : today;
+    const defaultEndDate = checkOutDate ? dayjs(checkOutDate) : tomorrow;
+    
+    setDateRange([defaultStartDate, defaultEndDate]);
+    form.setFieldsValue({
+      dateRange: [defaultStartDate, defaultEndDate],
+      numberOfGuests: room.capacity > 0 ? room.capacity : 1,
+      guestName: session?.user?.name || '',
+      guestEmail: session?.user?.email || '',
+    });
+    
+    const days = defaultEndDate.diff(defaultStartDate, 'day');
+    setNights(days);
+    setTotalAmount(days * room.price_per_night);
+    
+    setIsBookingModalOpen(true);
+  };
+  
+  const handleDateChange = (dates: any) => {
+    if (dates && dates.length === 2) {
+      const [start, end] = dates;
+      setDateRange([start, end]);
+      
+      const days = end.diff(start, 'day');
+      setNights(days);
+      
+      if (bookingRoom) {
+        const newTotal = days * bookingRoom.price_per_night;
+        setTotalAmount(newTotal);
+      }
+    }
+  };
+  
+  const handleBooking = async () => {
+    try {
+      await form.validateFields();
+      const values = form.getFieldsValue();
+      
+      if (!session) {
+        message.error('Vui lòng đăng nhập để đặt phòng');
+        router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.href));
+        return;
+      }
+      
+      if (!bookingRoom || !hotelId) {
+        message.error('Thông tin phòng không hợp lệ');
+        return;
+      }
+      
+      setLoading(true);
+      
+      const bookingData = {
+        hotel_id: hotelId,
+        room_id: bookingRoom._id,
+        check_in_date: values.dateRange[0].format('YYYY-MM-DD'),
+        check_out_date: values.dateRange[1].format('YYYY-MM-DD'),
+        total_amount: totalAmount,
+        number_of_guests: values.numberOfGuests,
+        guest_name: values.guestName,
+        guest_email: values.guestEmail,
+        guest_phone: values.guestPhone,
+        special_requests: values.specialRequests,
+      };
+      
+      const response = await sendRequest({
+        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/bookings`,
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session?.user?.access_token}`,
+        },
+        body: bookingData
+      });
+      
+      if (response?.data) {
+        message.success('Đặt phòng thành công');
+        setIsBookingModalOpen(false);
+        router.push(`/booking/payment/${response.data.booking_id}`);
+      } else {
+        throw new Error('Failed to create booking');
+      }
+    } catch (error: any) {
+      console.error('Booking error:', error);
+      message.error(error?.message || 'Có lỗi xảy ra khi đặt phòng');
+    } finally {
+      setLoading(false);
+    }
+  };
   
   if (!rooms || rooms.length === 0) {
     return (
@@ -36,7 +152,6 @@ const HotelRooms: React.FC<RoomProps> = ({
     );
   }
   
-  // Function to map bed configuration to readable text
   const formatBedConfig = (bedConfig: any[]) => {
     if (!bedConfig || !Array.isArray(bedConfig) || bedConfig.length === 0) {
       return 'N/A';
@@ -59,7 +174,6 @@ const HotelRooms: React.FC<RoomProps> = ({
     }).join(', ');
   };
   
-  // Format price with VND
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', { 
       style: 'currency', 
@@ -124,15 +238,39 @@ const HotelRooms: React.FC<RoomProps> = ({
                   </Paragraph>
                   
                   <div className="room-amenities">
-                    {room.amenities && room.amenities.slice(0, 4).map((amenity: string, index: number) => (
-                      <Tag key={index} color="blue">
-                        {amenity === 'wifi' && <WifiOutlined />}
-                        {amenity === 'breakfast' && <CoffeeOutlined />}
-                        {' '}{amenity}
-                      </Tag>
-                    ))}
+                    {room.amenities && room.amenities.slice(0, 4).map((amenity: string, index: number) => {
+                      const amenityInfo = ROOM_AMENITIES.find(a => a.value === amenity);
+                      return (
+                        <Tag 
+                          key={index} 
+                          color="blue"
+                          style={{ 
+                            marginBottom: 4, 
+                            fontSize: '13px', 
+                            padding: '4px 8px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            height: 'auto'
+                          }}
+                        >
+                          {amenityInfo?.icon && (
+                            <span style={{ 
+                              marginRight: '6px',
+                              display: 'flex',
+                              alignItems: 'center'
+                            }}>
+                              {amenityInfo.icon}
+                            </span>
+                          )}
+                          <span>{amenityInfo?.label || amenity}</span>
+                        </Tag>
+                      );
+                    })}
                     {room.amenities && room.amenities.length > 4 && (
-                      <Tooltip title={room.amenities.slice(4).join(', ')}>
+                      <Tooltip title={room.amenities.slice(4).map((a: string) => {
+                        const amenInfo = ROOM_AMENITIES.find(i => i.value === a);
+                        return amenInfo?.label || a;
+                      }).join(', ')}>
                         <Tag>+{room.amenities.length - 4}</Tag>
                       </Tooltip>
                     )}
@@ -161,7 +299,7 @@ const HotelRooms: React.FC<RoomProps> = ({
                       <Button 
                         type="primary" 
                         block
-                        onClick={() => onSelectRoom && onSelectRoom(room)}
+                        onClick={() => showBookingModal(room)}
                         disabled={room.number_of_rooms <= 0}
                       >
                         Đặt ngay
@@ -179,7 +317,6 @@ const HotelRooms: React.FC<RoomProps> = ({
         ))}
       </div>
       
-      {/* Room Detail Modal */}
       {selectedRoom && (
         <Modal
           title={selectedRoom.name}
@@ -244,13 +381,34 @@ const HotelRooms: React.FC<RoomProps> = ({
               <Col span={12}>
                 <Title level={5}>Tiện ích</Title>
                 <div className="amenities-grid">
-                  {selectedRoom.amenities && selectedRoom.amenities.map((amenity: string, index: number) => (
-                    <Tag key={index} color="blue">
-                      {amenity === 'wifi' && <WifiOutlined />}
-                      {amenity === 'breakfast' && <CoffeeOutlined />}
-                      {' '}{amenity}
-                    </Tag>
-                  ))}
+                  {selectedRoom.amenities && selectedRoom.amenities.map((amenity: string, index: number) => {
+                    const amenityInfo = ROOM_AMENITIES.find(a => a.value === amenity);
+                    return (
+                      <Tag 
+                        key={index} 
+                        color="blue"
+                        style={{ 
+                          marginBottom: 8, 
+                          fontSize: '14px', 
+                          padding: '6px 10px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          height: 'auto'
+                        }}
+                      >
+                        {amenityInfo?.icon && (
+                          <span className="amenity-icon" style={{ 
+                            marginRight: '8px',
+                            display: 'flex',
+                            alignItems: 'center'
+                          }}>
+                            {amenityInfo.icon}
+                          </span>
+                        )}
+                        <span>{amenityInfo?.label || amenity}</span>
+                      </Tag>
+                    );
+                  })}
                 </div>
               </Col>
               
@@ -276,8 +434,8 @@ const HotelRooms: React.FC<RoomProps> = ({
                       type="primary" 
                       size="large"
                       onClick={() => {
-                        onSelectRoom && onSelectRoom(selectedRoom);
                         setIsModalOpen(false);
+                        showBookingModal(selectedRoom);
                       }}
                     >
                       Đặt ngay
@@ -287,6 +445,134 @@ const HotelRooms: React.FC<RoomProps> = ({
               </Row>
             </div>
           </div>
+        </Modal>
+      )}
+      
+      {bookingRoom && (
+        <Modal
+          title={`Đặt phòng ${bookingRoom.name}`}
+          open={isBookingModalOpen}
+          onCancel={() => setIsBookingModalOpen(false)}
+          footer={null}
+          width={700}
+          destroyOnClose
+        >
+          <Form
+            form={form}
+            layout="vertical"
+            requiredMark="optional"
+          >
+            <Row gutter={16}>
+              <Col span={24}>
+                <Form.Item
+                  name="dateRange"
+                  label="Ngày nhận phòng - Ngày trả phòng"
+                  rules={[{ required: true, message: 'Vui lòng chọn ngày!' }]}
+                >
+                  <RangePicker 
+                    style={{ width: '100%' }} 
+                    format="DD/MM/YYYY"
+                    onChange={handleDateChange}
+                    disabledDate={(current) => current && current < dayjs().startOf('day')}
+                  />
+                </Form.Item>
+              </Col>
+              
+              <Col span={12}>
+                <Form.Item
+                  name="numberOfGuests"
+                  label="Số lượng khách"
+                  rules={[{ required: true, message: 'Vui lòng nhập số lượng khách!' }]}
+                >
+                  <InputNumber 
+                    min={1} 
+                    max={bookingRoom.capacity} 
+                    style={{ width: '100%' }} 
+                  />
+                </Form.Item>
+              </Col>
+              
+              <Col span={12}>
+                <div className="booking-summary">
+                  <Text>Thời gian lưu trú: <strong>{nights} đêm</strong></Text>
+                  <br />
+                  <Text>Giá phòng: <strong>{formatPrice(bookingRoom.price_per_night)}</strong> / đêm</Text>
+                </div>
+              </Col>
+            </Row>
+            
+            <Divider orientation="left">Thông tin khách hàng</Divider>
+            
+            <Row gutter={16}>
+              <Col span={24}>
+                <Form.Item
+                  name="guestName"
+                  label="Họ tên"
+                  rules={[{ required: true, message: 'Vui lòng nhập họ tên!' }]}
+                >
+                  <Input prefix={<UserOutlined />} />
+                </Form.Item>
+              </Col>
+              
+              <Col span={12}>
+                <Form.Item
+                  name="guestEmail"
+                  label="Email"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập email!' },
+                    { type: 'email', message: 'Email không hợp lệ!' }
+                  ]}
+                >
+                  <Input prefix={<MailOutlined />} />
+                </Form.Item>
+              </Col>
+              
+              <Col span={12}>
+                <Form.Item
+                  name="guestPhone"
+                  label="Số điện thoại"
+                  rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
+                >
+                  <Input prefix={<PhoneOutlined />} />
+                </Form.Item>
+              </Col>
+              
+              <Col span={24}>
+                <Form.Item
+                  name="specialRequests"
+                  label="Yêu cầu đặc biệt"
+                >
+                  <Input.TextArea rows={3} placeholder="Nếu bạn có yêu cầu đặc biệt, vui lòng cho chúng tôi biết" />
+                </Form.Item>
+              </Col>
+            </Row>
+            
+            <Divider />
+            
+            <div className="booking-total">
+              <Row justify="space-between" align="middle">
+                <Col>
+                  <Text>Tổng tiền:</Text>
+                  <Title level={3} style={{ margin: 0 }}>{formatPrice(totalAmount)}</Title>
+                </Col>
+                <Col>
+                  <Button 
+                    type="primary" 
+                    size="large" 
+                    onClick={handleBooking}
+                    loading={loading}
+                  >
+                    Tiến hành thanh toán
+                  </Button>
+                </Col>
+              </Row>
+              <div style={{ marginTop: 12 }}>
+                <Text type="secondary">
+                  Bằng cách nhấn nút "Tiến hành thanh toán", bạn đồng ý với các điều khoản và điều kiện đặt phòng của chúng tôi.
+                </Text>
+              </div>
+            </div>
+          </Form>
         </Modal>
       )}
       
@@ -395,6 +681,20 @@ const HotelRooms: React.FC<RoomProps> = ({
         }
         
         .room-booking-detail {
+          padding-top: 16px;
+        }
+        
+        .booking-summary {
+          padding: 10px;
+          background-color: #f5f5f5;
+          border-radius: 4px;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+        
+        .booking-total {
           padding-top: 16px;
         }
         
