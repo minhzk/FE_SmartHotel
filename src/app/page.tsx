@@ -2,9 +2,15 @@ import { auth } from "@/auth";
 import HomePage from "@/components/layout/homepage";
 import UserHeader from "@/components/layout/user.header";
 import Footer from "@/components/layout/user.footer";
+import { redirect } from "next/navigation";
 
 export default async function Home() {
   const session = await auth();
+  
+  // Kiểm tra nếu người dùng có role là ADMIN, chuyển hướng đến trang dashboard
+  if (session?.user?.role === 'ADMIN') {
+    redirect("/dashboard");
+  }
 
   return (
     <div className="main-container" style={{ 
@@ -15,16 +21,13 @@ export default async function Home() {
       margin: '0 auto',
       position: 'relative'
     }}>
-      <div className="header-container" style={{ 
-        width: '100%'
-      }}>
+      <div className="header-container" style={{ width: '100%' }}>
         <UserHeader session={session} />
       </div>
       
       <div style={{ flex: 1 }}>
         <HomePage />
       </div>
-      
     </div>
   );
 }

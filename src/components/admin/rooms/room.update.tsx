@@ -345,8 +345,15 @@ const RoomUpdate = ({ isUpdateModalOpen, setIsUpdateModalOpen, dataUpdate, setDa
                                 <Select.Option value="Standard">Standard</Select.Option>
                                 <Select.Option value="Deluxe">Deluxe</Select.Option>
                                 <Select.Option value="Suite">Suite</Select.Option>
-                                <Select.Option value="Family">Family</Select.Option>
                                 <Select.Option value="Executive">Executive</Select.Option>
+                                <Select.Option value="Family">Family</Select.Option>
+                                <Select.Option value="Villa">Villa</Select.Option>
+                                <Select.Option value="Bungalow">Bungalow</Select.Option>
+                                <Select.Option value="Studio">Studio</Select.Option>
+                                <Select.Option value="Connecting">Connecting</Select.Option>
+                                <Select.Option value="Accessible">Accessible</Select.Option>
+                                <Select.Option value="Penthouse">Penthouse</Select.Option>
+                                <Select.Option value="Presidential">Presidential</Select.Option>
                             </Select>
                         </Form.Item>
                     </Col>

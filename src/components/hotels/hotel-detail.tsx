@@ -149,10 +149,25 @@ const HotelDetail: React.FC<HotelDetailProps> = ({ hotel, rooms, reviews, sessio
                           <Tag 
                             key={index} 
                             color="blue"
-                            icon={amenityInfo?.icon}
-                            style={{ marginBottom: 8, fontSize: '14px', padding: '4px 8px' }}
+                            style={{ 
+                              marginBottom: 8, 
+                              fontSize: '14px', 
+                              padding: '6px 10px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              height: 'auto'
+                            }}
                           >
-                            {amenityInfo?.label || amenity}
+                            {amenityInfo?.icon && (
+                              <span className="amenity-icon" style={{ 
+                                marginRight: '8px',
+                                display: 'flex',
+                                alignItems: 'center'
+                              }}>
+                                {amenityInfo.icon}
+                              </span>
+                            )}
+                            <span>{amenityInfo?.label || amenity}</span>
                           </Tag>
                         );
                       })}
@@ -182,6 +197,7 @@ const HotelDetail: React.FC<HotelDetailProps> = ({ hotel, rooms, reviews, sessio
                     <HotelRooms 
                       rooms={rooms} 
                       onSelectRoom={handleBookRoom}
+                      hotelId={hotel._id}
                     />
                   </div>
                 </TabPane>
