@@ -6,11 +6,6 @@ import { redirect } from "next/navigation";
 
 export default async function Home() {
   const session = await auth();
-  
-  // Kiểm tra nếu người dùng có role là ADMIN, chuyển hướng đến trang dashboard
-  if (session?.user?.role === 'ADMIN') {
-    redirect("/dashboard");
-  }
 
   return (
     <div className="main-container" style={{ 

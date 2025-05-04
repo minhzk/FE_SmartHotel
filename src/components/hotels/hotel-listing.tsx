@@ -345,7 +345,7 @@ const HotelListing = ({ session }: IHotelListingProps) => {
           ) : hotels.length > 0 ? (
             <div className="hotel-list">
               {hotels.map((hotel) => (
-                <HotelCard key={hotel._id} hotel={hotel} />
+                <HotelCard key={hotel._id} hotel={hotel} session={session} />
               ))}
               
               <div className="pagination-container">

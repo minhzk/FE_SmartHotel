@@ -13,6 +13,7 @@ import Link from 'next/link';
 import HotelGallery from './hotel-gallery';
 import HotelRooms from './hotel-rooms';
 import HotelReviews from './hotel-reviews';
+import FavoriteButton from './favorite-button';
 import { useRouter } from 'next/navigation';
 import { sendRequest } from '@/utils/api';
 import { HOTEL_AMENITIES } from "@/constants/hotel.constants";
@@ -86,7 +87,10 @@ const HotelDetail: React.FC<HotelDetailProps> = ({ hotel, rooms, reviews, sessio
         
         {/* Hotel Header */}
         <div className="hotel-header">
-          <Title level={2}>{hotel.name}</Title>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <Title level={2}>{hotel.name}</Title>
+            <FavoriteButton hotelId={hotel._id} session={session} size="large" />
+          </div>
           <div className="hotel-rating">
             <Rate disabled defaultValue={totalRating} />
             <Text>{totalRating} sao</Text>

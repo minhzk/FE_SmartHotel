@@ -12,7 +12,8 @@ import {
   BellOutlined,
   HomeOutlined,
   LoginOutlined,
-  UserAddOutlined
+  UserAddOutlined,
+  DashboardOutlined
 } from '@ant-design/icons';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -43,54 +44,82 @@ const UserHeader = ({ session }: UserHeaderProps) => {
   }, []);
 
   // Menu items cho người dùng đã đăng nhập
-  const userMenuItems = [
-    {
-      key: 'account',
-      label: (
-        <div className="user-dropdown-header">
-          <strong>TÀI KHOẢN CỦA TÔI</strong>
-        </div>
-      ),
-      type: 'group',
-      children: [
-        {
-          key: 'profile',
-          icon: <UserOutlined />,
-          label: <Link href="/profile">Thông tin cá nhân</Link>,
-        },
-        {
-          key: 'bookings',
-          icon: <OrderedListOutlined />,
-          label: <Link href="/bookings">Đơn đặt phòng</Link>,
-        },
-        {
-          key: 'messages',
-          icon: <BellOutlined />,
-          label: <Link href="/messages">Thông báo</Link>,
-        },
-        {
-          key: 'favorites',
-          icon: <HeartOutlined />,
-          label: <Link href="/favorites">Danh sách yêu thích</Link>,
-        },
-        {
-          key: 'reviews',
-          icon: <StarOutlined />,
-          label: <Link href="/reviews">Đánh giá của tôi</Link>,
-        },
-      ],
-    },
-    {
-      key: 'divider',
-      type: 'divider',
-    },
-    {
-      key: 'logout',
-      danger: true,
-      icon: <LogoutOutlined />,
-      label: <span onClick={() => signOut({ callbackUrl: '/' })}>Đăng xuất</span>,
-    },
-  ];
+  const generateUserMenuItems = () => {
+    const menuItems = [
+      {
+        key: 'account',
+        label: (
+          <div className="user-dropdown-header">
+            <strong>TÀI KHOẢN CỦA TÔI</strong>
+          </div>
+        ),
+        type: 'group',
+        children: [
+          {
+            key: 'profile',
+            icon: <UserOutlined />,
+            label: <Link href="/profile">Thông tin cá nhân</Link>,
+          },
+          {
+            key: 'bookings',
+            icon: <OrderedListOutlined />,
+            label: <Link href="/bookings">Đơn đặt phòng</Link>,
+          },
+          {
+            key: 'messages',
+            icon: <BellOutlined />,
+            label: <Link href="/messages">Thông báo</Link>,
+          },
+          {
+            key: 'favorites',
+            icon: <HeartOutlined />,
+            label: <Link href="/favorites">Danh sách yêu thích</Link>,
+          },
+          {
+            key: 'reviews',
+            icon: <StarOutlined />,
+            label: <Link href="/reviews">Đánh giá của tôi</Link>,
+          },
+        ],
+      },
+    ];
+
+    // Thêm tùy chọn quản trị nếu người dùng là admin
+    if (session?.user?.role === 'ADMIN' || session?.user?.role === 'admin') {
+      menuItems.push({
+        key: 'admin',
+        type: 'group',
+        label: (
+          <div className="user-dropdown-header">
+            <strong>QUẢN TRỊ HỆ THỐNG</strong>
+          </div>
+        ),
+        children: [
+          {
+            key: 'dashboard',
+            icon: <DashboardOutlined />,
+            label: <Link href="/dashboard">Bảng điều khiển</Link>,
+          }
+        ]
+      });
+    }
+
+    // Thêm các tùy chọn còn lại
+    menuItems.push(
+      {
+        key: 'divider',
+        type: 'divider',
+      },
+      {
+        key: 'logout',
+        danger: true,
+        icon: <LogoutOutlined />,
+        label: <span onClick={() => signOut({ callbackUrl: '/' })}>Đăng xuất</span>,
+      }
+    );
+
+    return menuItems;
+  };
 
   const mainNavItems = [
     {
@@ -166,7 +195,7 @@ const UserHeader = ({ session }: UserHeaderProps) => {
               />
             </Badge>
 
-            <Dropdown menu={{ items: userMenuItems }} trigger={['click']} arrow>
+            <Dropdown menu={{ items: generateUserMenuItems() }} trigger={['click']} arrow>
               <a onClick={(e) => e.preventDefault()} className="user-dropdown-link">
                 <Space>
                   <Avatar 

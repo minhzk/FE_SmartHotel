@@ -3,14 +3,16 @@ import { Card, Row, Col, Typography, Rate, Button, Tag, Space, Image } from 'ant
 import { EnvironmentOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import { HOTEL_AMENITIES } from "@/constants/hotel.constants";
+import FavoriteButton from './favorite-button';
 
 const { Title, Text, Paragraph } = Typography;
 
 interface IHotelCardProps {
   hotel: any;
+  session?: any;
 }
 
-const HotelCard: React.FC<IHotelCardProps> = ({ hotel }) => {
+const HotelCard: React.FC<IHotelCardProps> = ({ hotel, session }) => {
   // Lấy icon từ danh sách đã định nghĩa
   const getAmenityIcon = (amenityValue: string) => {
     const amenity = HOTEL_AMENITIES.find(item => item.value === amenityValue);
@@ -53,6 +55,8 @@ const HotelCard: React.FC<IHotelCardProps> = ({ hotel }) => {
               alt={hotel.name} 
               fallback="https://via.placeholder.com/300x200?text=Hotel+Image"
               className="hotel-image"
+              style={{ height: '200px', objectFit: 'cover', width: '100%' }}
+              preview={false}
             />
             
             {hotel.rating && (
@@ -60,6 +64,15 @@ const HotelCard: React.FC<IHotelCardProps> = ({ hotel }) => {
                 <Tag color="#1677ff">{hotel.rating} sao</Tag>
               </div>
             )}
+            
+            {/* Thêm nút yêu thích */}
+            <div className="favorite-button-container">
+              <FavoriteButton 
+                hotelId={hotel._id} 
+                session={session} 
+                style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+              />
+            </div>
           </div>
         </Col>
         
@@ -138,21 +151,35 @@ const HotelCard: React.FC<IHotelCardProps> = ({ hotel }) => {
         
         .hotel-image-container {
           position: relative;
-          width: 100%;
+          width: 282px;
           height: 200px;
           overflow: hidden;
+          margin: 0 auto;
+          background-color: #f5f5f5; /* Màu nền khi ảnh nhỏ hơn container */
+          display: flex;
+          justify-content: center;
+          align-items: center;
         }
         
         .hotel-image {
           width: 100%;
           height: 100%;
-          object-fit: cover;
+          object-fit: cover; /* Đảm bảo ảnh phủ kín container */
+          object-position: center; /* Luôn canh giữa ảnh */
+          min-width: 100%; /* Đảm bảo ảnh luôn rộng bằng container */
+          min-height: 100%; /* Đảm bảo ảnh luôn cao bằng container */
         }
         
         .hotel-rating-badge {
           position: absolute;
           top: 10px;
           left: 10px;
+        }
+        
+        .favorite-button-container {
+          position: absolute;
+          bottom: 10px;
+          right: 10px;
         }
         
         .hotel-info {
