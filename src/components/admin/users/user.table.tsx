@@ -58,6 +58,17 @@ const UserTable = (props: IProps) => {
         fetchUsers();
     }, [searchParams, session]);
 
+    // Cập nhật giá trị form khi URL thay đổi
+    useEffect(() => {
+        form.setFieldsValue({
+            role: searchParams.get('role') || undefined,
+            isActive: searchParams.has('isActive') 
+                ? searchParams.get('isActive') === 'true'
+                : undefined,
+            search: searchParams.get('search') || undefined,
+        });
+    }, [searchParams, form]);
+
     const fetchUsers = async () => {
         if (!session?.user?.access_token) return;
 
@@ -246,8 +257,10 @@ const UserTable = (props: IProps) => {
     };
 
     const resetFilters = () => {
+        // Reset form trước
         form.resetFields();
-
+        
+        // Sau đó mới thay đổi URL
         const params = new URLSearchParams();
         params.set('current', '1');
         replace(`${pathname}?${params.toString()}`);
