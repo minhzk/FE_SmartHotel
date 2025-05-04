@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Radio, Card, Typography, Divider, Button, Space, Alert, Row, Col, Skeleton } from 'antd';
 import { CheckCircleFilled, CreditCardOutlined, WalletOutlined } from '@ant-design/icons';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { sendRequest } from '@/utils/api';
 
 const { Title, Text, Paragraph } = Typography;
@@ -24,6 +24,7 @@ const PaymentSelection: React.FC<PaymentSelectionProps> = ({
   bookingId 
 }) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [paymentType, setPaymentType] = useState<string>('full_payment');
   const [paymentMethod, setPaymentMethod] = useState<string>('vnpay');
@@ -32,6 +33,33 @@ const PaymentSelection: React.FC<PaymentSelectionProps> = ({
   // Kiểm tra khách sạn có cho phép đặt cọc không
   const acceptDeposit = hotelInfo?.accept_deposit === true;
   
+  // Xác định trạng thái thanh toán từ booking data
+  const isPaid = bookingData?.payment_status === 'paid';
+  const isPartiallyPaid = bookingData?.payment_status === 'partially_paid';
+  const isDepositPaid = bookingData?.deposit_status === 'paid';
+  
+  // Kiểm tra query parameter để xác định loại thanh toán
+  useEffect(() => {
+    const type = searchParams.get('type');
+    
+    // Nếu đã đặt cọc, chỉ cho phép thanh toán số tiền còn lại
+    if (isPartiallyPaid || isDepositPaid) {
+      setPaymentType('remaining');
+    } 
+    // Nếu có query parameter type=remaining, chọn thanh toán số tiền còn lại
+    else if (type === 'remaining') {
+      setPaymentType('remaining');
+    } 
+    // Nếu có query parameter type=deposit, chọn đặt cọc
+    else if (type === 'deposit' && acceptDeposit) {
+      setPaymentType('deposit');
+    }
+    // Mặc định là thanh toán toàn bộ
+    else {
+      setPaymentType('full_payment');
+    }
+  }, [searchParams, acceptDeposit, isPartiallyPaid, isDepositPaid]);
+
   // Format tiền VND
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -47,6 +75,8 @@ const PaymentSelection: React.FC<PaymentSelectionProps> = ({
     
     if (paymentType === 'deposit') {
       return bookingData.deposit_amount;
+    } else if (paymentType === 'remaining') {
+      return bookingData.remaining_amount;
     }
     
     return bookingData.total_amount;
@@ -56,6 +86,8 @@ const PaymentSelection: React.FC<PaymentSelectionProps> = ({
   const getPaymentDescription = () => {
     if (paymentType === 'deposit') {
       return `Đặt cọc cho đơn đặt phòng ${bookingId} (${formatCurrency(bookingData.deposit_amount)})`;
+    } else if (paymentType === 'remaining') {
+      return `Thanh toán số tiền còn lại cho đơn đặt phòng ${bookingId} (${formatCurrency(bookingData.remaining_amount)})`;
     }
     return `Thanh toán đầy đủ cho đơn đặt phòng ${bookingId} (${formatCurrency(bookingData.total_amount)})`;
   };
@@ -149,6 +181,12 @@ const PaymentSelection: React.FC<PaymentSelectionProps> = ({
                       <Text>{formatCurrency(bookingData.deposit_amount)}</Text>
                     </div>
                   )}
+                  {(isPartiallyPaid || isDepositPaid) && (
+                    <div className="info-item">
+                      <Text strong>Số tiền còn lại:</Text>
+                      <Text>{formatCurrency(bookingData.remaining_amount)}</Text>
+                    </div>
+                  )}
                 </Col>
               </Row>
             </Card>
@@ -157,8 +195,8 @@ const PaymentSelection: React.FC<PaymentSelectionProps> = ({
           {/* Phương thức thanh toán */}
           <Col span={24} md={8}>
             <Card type="inner" title="Thanh toán" className="payment-methods">
-              {/* Loại thanh toán */}
-              {acceptDeposit && (
+              {/* Loại thanh toán - Chỉ hiển thị khi chưa đặt cọc và khách sạn cho phép đặt cọc */}
+              {acceptDeposit && !isPartiallyPaid && !isDepositPaid && (
                 <>
                   <Title level={5}>Chọn loại thanh toán</Title>
                   <Radio.Group 
@@ -185,6 +223,25 @@ const PaymentSelection: React.FC<PaymentSelectionProps> = ({
                       </Radio>
                     </Space>
                   </Radio.Group>
+                  <Divider />
+                </>
+              )}
+              
+              {/* Hiển thị thông báo nếu đã đặt cọc */}
+              {(isPartiallyPaid || isDepositPaid) && (
+                <>
+                  <Alert
+                    message="Thông tin thanh toán"
+                    description={
+                      <>
+                        <p>Bạn đã đặt cọc {formatCurrency(bookingData.deposit_amount)}.</p>
+                        <p>Số tiền cần thanh toán: {formatCurrency(bookingData.remaining_amount)}</p>
+                      </>
+                    }
+                    type="info"
+                    showIcon
+                    style={{ marginBottom: 16 }}
+                  />
                   <Divider />
                 </>
               )}

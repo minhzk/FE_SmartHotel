@@ -85,11 +85,22 @@ const HotelCard: React.FC<IHotelCardProps> = ({ hotel }) => {
             
             <div className="hotel-amenities">
               <Space size={[0, 8]} wrap>
-                {hotel.amenities?.slice(0, 4).map((amenity: string, index: number) => (
-                  <Tag key={index} icon={getAmenityIcon(amenity)}>
-                    {HOTEL_AMENITIES.find(a => a.value === amenity)?.label || amenity}
-                  </Tag>
-                ))}
+                {hotel.amenities?.slice(0, 4).map((amenity: string, index: number) => {
+                  const amenityInfo = HOTEL_AMENITIES.find(a => a.value === amenity);
+                  return (
+                    <Tag 
+                      key={index} 
+                      className="amenity-tag"
+                    >
+                      <span className="amenity-content">
+                        {amenityInfo?.icon && (
+                          <span className="amenity-icon">{amenityInfo.icon}</span>
+                        )}
+                        <span>{amenityInfo?.label || amenity}</span>
+                      </span>
+                    </Tag>
+                  );
+                })}
                 {hotel.amenities?.length > 4 && (
                   <Tag>+{hotel.amenities.length - 4}</Tag>
                 )}
@@ -174,6 +185,22 @@ const HotelCard: React.FC<IHotelCardProps> = ({ hotel }) => {
         
         .hotel-amenities {
           margin-bottom: auto;
+        }
+        
+        .amenity-tag {
+          padding: 4px 8px;
+        }
+        
+        .amenity-content {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+        }
+        
+        .amenity-icon {
+          display: flex;
+          align-items: center;
+          font-size: 14px;
         }
         
         .hotel-footer {

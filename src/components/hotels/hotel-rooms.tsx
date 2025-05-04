@@ -130,7 +130,7 @@ const HotelRooms: React.FC<RoomProps> = ({
       if (response?.data) {
         message.success('Đặt phòng thành công');
         setIsBookingModalOpen(false);
-        router.push(`/booking/payment/${response.data.booking_id}`);
+        router.push(`/bookings/payment/${response.data.booking_id}`);
       } else {
         throw new Error('Failed to create booking');
       }
@@ -271,7 +271,23 @@ const HotelRooms: React.FC<RoomProps> = ({
                         const amenInfo = ROOM_AMENITIES.find(i => i.value === a);
                         return amenInfo?.label || a;
                       }).join(', ')}>
-                        <Tag>+{room.amenities.length - 4}</Tag>
+                        <Tag
+                          style={{ 
+                            marginBottom: 4, 
+                            fontSize: '13px', 
+                            padding: '4px 8px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            height: 'auto'
+                          }}
+                        >
+                          <span style={{
+                            display: 'flex',
+                            alignItems: 'center'
+                          }}>
+                            +{room.amenities.length - 4}
+                          </span>
+                        </Tag>
                       </Tooltip>
                     )}
                   </div>

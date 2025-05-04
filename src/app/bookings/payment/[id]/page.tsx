@@ -1,14 +1,23 @@
 import { auth } from '@/auth';
-import PaymentSelection from '@/components/booking/payment-selection';
+import PaymentSelection from '@/components/bookings/payment-selection'; 
 import { sendRequest } from '@/utils/api';
 import { redirect } from 'next/navigation';
 
-export default async function PaymentPage({ params }: { params: { id: string } }) {
+export default async function PaymentPage({ 
+  params,
+  searchParams 
+}: { 
+  params: { id: string },
+  searchParams?: { [key: string]: string | string[] | undefined }
+}) {
   const session = await auth();
+  const paymentType = searchParams?.type;
   
   // Redirect to login if not authenticated
   if (!session) {
-    redirect('/auth/signin?callbackUrl=' + encodeURIComponent(`/booking/payment/${params.id}`));
+    const callbackUrl = `/bookings/payment/${params.id}`;
+    const queryParams = paymentType ? `?type=${paymentType}` : '';
+    redirect('/auth/signin?callbackUrl=' + encodeURIComponent(`${callbackUrl}${queryParams}`));
   }
   
   // Fetch booking details
@@ -24,6 +33,15 @@ export default async function PaymentPage({ params }: { params: { id: string } }
     
     if (!booking?.data) {
       redirect('/bookings?error=booking-not-found');
+    }
+    
+    // Redirect if booking is already paid or canceled
+    if (booking.data.payment_status === 'paid') {
+      redirect('/bookings?error=booking-already-paid');
+    }
+    
+    if (booking.data.status === 'canceled') {
+      redirect('/bookings?error=booking-canceled');
     }
     
     // Fetch hotel information
