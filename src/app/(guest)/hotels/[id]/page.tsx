@@ -46,8 +46,7 @@ export default async function HotelDetailPage({ params }: IProps) {
       method: "GET",
       queryParams: {
         pageSize: 5,
-        current: 1,
-        status: "approved"
+        current: 1
       },
       nextOption: {
         next: { tags: [`reviews-hotel-${hotelId}`] }

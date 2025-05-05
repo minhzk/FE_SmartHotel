@@ -1,5 +1,5 @@
 'use client'
-import { EyeTwoTone, FilterOutlined } from "@ant-design/icons";
+import { EyeTwoTone, FilterOutlined, SyncOutlined } from "@ant-design/icons";
 import { Button, Table, Tag, DatePicker, Select, Form, Row, Col, Card, Space, Tooltip, message, Input } from "antd";
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from "react";
@@ -137,6 +137,39 @@ const BookingTable = (props: IProps) => {
         }
     };
 
+    const handleManualUpdateCompletedBookings = async () => {
+        if (!session?.user?.access_token) return;
+        
+        try {
+            setLoading(true);
+            const res = await sendRequest({
+                url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/bookings/check-completed`,
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${session.user.access_token}`,
+                    'Content-Type': 'application/json'  // Đảm bảo đúng content type
+                },
+                // Thêm body trống để tránh một số vấn đề với certaim API frameworks
+                body: {}  
+            });
+            
+            if (res?.data?.success) {
+                message.success('Đã cập nhật trạng thái booking thành công');
+                // Tải lại danh sách booking sau khi cập nhật
+                fetchBookings();
+            }
+        } catch (error: any) {
+            console.error('Error updating bookings:', error);
+            // Log chi tiết hơn về lỗi
+            if (error.response) {
+                console.error('Response:', error.response);
+            }
+            message.error(error?.response?.data?.message || 'Cập nhật trạng thái booking thất bại');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const bookingStatusColors = {
         [BookingStatus.PENDING]: 'orange',
         [BookingStatus.CONFIRMED]: 'green',
@@ -202,15 +235,24 @@ const BookingTable = (props: IProps) => {
         {
             title: 'Checkin - Checkout',
             key: 'dates',
-            render: (_, record) => (
-                <div>
-                    <div>{dayjs(record.check_in_date).format('DD/MM/YYYY')}</div>
-                    <div>{dayjs(record.check_out_date).format('DD/MM/YYYY')}</div>
-                    <div style={{ fontSize: '12px', color: '#999' }}>
-                        {dayjs(record.check_out_date).diff(dayjs(record.check_in_date), 'day')} đêm
+            render: (_, record) => {
+                // Chuyển đổi sang UTC và chỉ giữ lại phần ngày để tính toán chính xác
+                const checkInDate = dayjs(record.check_in_date).startOf('day');
+                const checkOutDate = dayjs(record.check_out_date).startOf('day');
+                
+                // Tính số đêm dựa trên sự khác biệt giữa ngày
+                const nights = checkOutDate.diff(checkInDate, 'day');
+                
+                return (
+                    <div>
+                        <div>{dayjs(record.check_in_date).format('DD/MM/YYYY')}</div>
+                        <div>{dayjs(record.check_out_date).format('DD/MM/YYYY')}</div>
+                        <div style={{ fontSize: '12px', color: '#999' }}>
+                            {nights} đêm
+                        </div>
                     </div>
-                </div>
-            ),
+                )
+            },
             sorter: (a, b) => dayjs(a.check_in_date).unix() - dayjs(b.check_in_date).unix()
         },
         {
@@ -419,7 +461,19 @@ const BookingTable = (props: IProps) => {
                 </Form>
             </Card>
 
-            <Card title="Quản lý đặt phòng">
+            <Card 
+                title="Quản lý đặt phòng"
+                extra={
+                    <Button 
+                        type="primary" 
+                        icon={<SyncOutlined />} 
+                        onClick={handleManualUpdateCompletedBookings}
+                        loading={loading}
+                    >
+                        Cập nhật booking hoàn thành
+                    </Button>
+                }
+            >
                 <Table
                     bordered
                     dataSource={bookings}

@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { Table, Card, Tag, Button, Empty, message, Tabs, DatePicker, Space } from 'antd';
-import { ClockCircleOutlined, CheckCircleOutlined, CloseCircleOutlined, EyeOutlined } from '@ant-design/icons';
+import { ClockCircleOutlined, CheckCircleOutlined, CloseCircleOutlined, EyeOutlined, StarOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { sendRequest } from '@/utils/api';
 import { useRouter } from 'next/navigation';
 import BookingDetail from './booking-detail';
 import BookingCancel from './booking-cancel';
+import ReviewModal from '@/components/reviews/review-modal';
 
 const { TabPane } = Tabs;
 const { RangePicker } = DatePicker;
@@ -70,14 +71,18 @@ const BookingList: React.FC<BookingListProps> = ({ session }) => {
   const [selectedBooking, setSelectedBooking] = useState<IBooking | null>(null);
   const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
   const [isCancelModalVisible, setIsCancelModalVisible] = useState(false);
+  const [isReviewModalVisible, setIsReviewModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null]>([null, null]);
   const [hotelDetails, setHotelDetails] = useState<Record<string, { name: string }>>({});
   const [roomDetails, setRoomDetails] = useState<Record<string, { name: string }>>({});
+  const [reviewedBookings, setReviewedBookings] = useState<string[]>([]);
 
   useEffect(() => {
     if (session?.user?.access_token) {
       fetchBookings();
+      // Gọi API để kiểm tra những booking nào đã được đánh giá
+      fetchUserReviews();
     }
   }, [session, activeTab, dateRange]);
 
@@ -180,6 +185,40 @@ const BookingList: React.FC<BookingListProps> = ({ session }) => {
     }
   };
 
+  // Thêm hàm mới để tải các đánh giá của người dùng
+  const fetchUserReviews = async () => {
+    try {
+      console.log('Fetching user reviews with token:', session.user.access_token);
+      
+      const res = await sendRequest({
+        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/reviews/user`,
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.user.access_token}`
+        }
+      });
+
+      console.log('User reviews API response:', res?.data);
+
+      if (res?.data?.results) {
+        // Lấy danh sách hotelId từ các đánh giá đã tồn tại
+        const reviewedHotels = res.data.results.map((review: any) => {
+          // Kiểm tra xem hotel_id có phải là object với _id không (khi được populate)
+          if (review.hotel_id && typeof review.hotel_id === 'object' && review.hotel_id._id) {
+            return review.hotel_id._id;
+          }
+          // Trường hợp hotel_id là string
+          return review.hotel_id;
+        });
+        
+        console.log('Extracted reviewed hotel IDs:', reviewedHotels);
+        setReviewedBookings(reviewedHotels);
+      }
+    } catch (error) {
+      console.error('Error fetching user reviews:', error);
+    }
+  };
+
   const handleViewDetail = (booking: IBooking) => {
     setSelectedBooking({
       ...booking,
@@ -196,6 +235,39 @@ const BookingList: React.FC<BookingListProps> = ({ session }) => {
       room_name: roomDetails[booking.room_id]?.name || 'Unknown Room'
     });
     setIsCancelModalVisible(true);
+  };
+
+  const handleReviewBooking = (booking: IBooking) => {
+    setSelectedBooking({
+      ...booking,
+      hotel_name: hotelDetails[booking.hotel_id]?.name || 'Unknown Hotel',
+      room_name: roomDetails[booking.room_id]?.name || 'Unknown Room'
+    });
+    setIsReviewModalVisible(true);
+  };
+
+  // Cập nhật hàm canReview để kiểm tra thêm điều kiện
+  const canReview = (booking: IBooking) => {
+    // Log để debug
+    console.log('Checking canReview for booking:', booking.booking_id);
+    console.log('Hotel ID:', booking.hotel_id);
+    console.log('Reviewed bookings:', reviewedBookings);
+    
+    // Kiểm tra xem hotel_id của booking có trong danh sách reviewedHotels không
+    const hasReviewed = reviewedBookings.some(id => id === booking.hotel_id);
+    console.log('Has reviewed:', hasReviewed);
+    
+    // Điều kiện để hiển thị nút đánh giá:
+    // 1. Booking đã hoàn thành
+    // 2. Đã qua ngày check-out
+    // 3. Đã thanh toán đầy đủ
+    // 4. Chưa đánh giá khách sạn này
+    return (
+      booking.status === BookingStatus.COMPLETED && 
+      dayjs(booking.check_out_date).isBefore(dayjs()) && 
+      booking.payment_status === PaymentStatus.PAID &&
+      !hasReviewed
+    );
   };
 
   const handlePayment = (booking: IBooking) => {
@@ -265,15 +337,24 @@ const BookingList: React.FC<BookingListProps> = ({ session }) => {
     {
       title: 'Ngày',
       key: 'dates',
-      render: (_, record: IBooking) => (
-        <div>
-          <div>Nhận: {dayjs(record.check_in_date).format('DD/MM/YYYY')}</div>
-          <div>Trả: {dayjs(record.check_out_date).format('DD/MM/YYYY')}</div>
+      render: (_, record: IBooking) => {
+        // Chuyển đổi sang UTC và chỉ giữ lại phần ngày để tính toán chính xác
+        const checkInDate = dayjs(record.check_in_date).startOf('day');
+        const checkOutDate = dayjs(record.check_out_date).startOf('day');
+        
+        // Tính số đêm dựa trên sự khác biệt giữa ngày
+        const nights = checkOutDate.diff(checkInDate, 'day');
+        
+        return (
           <div>
-            {dayjs(record.check_out_date).diff(dayjs(record.check_in_date), 'day')} đêm
+            <div>Nhận: {dayjs(record.check_in_date).format('DD/MM/YYYY')}</div>
+            <div>Trả: {dayjs(record.check_out_date).format('DD/MM/YYYY')}</div>
+            <div>
+              {nights} đêm
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       title: 'Số tiền',
@@ -352,6 +433,18 @@ const BookingList: React.FC<BookingListProps> = ({ session }) => {
               Hủy
             </Button>
           )}
+          
+          {/* Hiển thị nút đánh giá nếu đơn hàng đã hoàn thành và đã qua ngày check-out */}
+          {canReview(record) && (
+            <Button 
+              type="default" 
+              size="small" 
+              icon={<StarOutlined />}
+              onClick={() => handleReviewBooking(record)}
+            >
+              Đánh giá
+            </Button>
+          )}
         </Space>
       ),
     },
@@ -427,6 +520,21 @@ const BookingList: React.FC<BookingListProps> = ({ session }) => {
           session={session}
           onSuccess={() => {
             setIsCancelModalVisible(false);
+            fetchBookings();
+          }}
+        />
+      )}
+
+      {/* Modal đánh giá */}
+      {selectedBooking && (
+        <ReviewModal
+          booking={selectedBooking}
+          visible={isReviewModalVisible}
+          onClose={() => setIsReviewModalVisible(false)}
+          session={session}
+          onSuccess={() => {
+            setIsReviewModalVisible(false);
+            message.success('Đánh giá của bạn đã được gửi thành công!');
             fetchBookings();
           }}
         />

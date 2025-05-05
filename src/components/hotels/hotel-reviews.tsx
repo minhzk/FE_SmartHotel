@@ -91,10 +91,17 @@ const HotelReviews: React.FC<ReviewProps> = ({ reviews, rating = 0 }) => {
               <div key={review._id || index} className="review-item">
                 <div className="review-header">
                   <div className="reviewer-info">
-                    <Avatar icon={<UserOutlined />} src={review.user_avatar} />
+                    <Avatar 
+                      icon={<UserOutlined />} 
+                      src={review.user_id?.avatar} 
+                    />
                     <div className="reviewer-details">
-                      <Text strong>{review.user_name || 'Khách hàng ẩn danh'}</Text>
-                      <Text type="secondary">{dayjs(review.created_at).format('DD/MM/YYYY')}</Text>
+                      <Text strong>
+                        {review.user_id?.name || 'Khách hàng ẩn danh'}
+                      </Text>
+                      <Text type="secondary">
+                        {dayjs(review.createdAt).format('DD/MM/YYYY')}
+                      </Text>
                     </div>
                   </div>
                   <div className="review-rating">
@@ -108,7 +115,7 @@ const HotelReviews: React.FC<ReviewProps> = ({ reviews, rating = 0 }) => {
                 </div>
                 
                 <div className="review-content">
-                  <Paragraph>{review.content}</Paragraph>
+                  <Paragraph>{review.review_text}</Paragraph>
                 </div>
                 
                 {review.response && (
