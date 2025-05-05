@@ -5,7 +5,8 @@ import { Card, Row, Col, Typography, Button, Tag, Divider, Image, Modal, Tooltip
 import { 
   CheckCircleFilled, InfoCircleOutlined, UserOutlined, HomeOutlined, 
   WifiOutlined, CoffeeOutlined, AreaChartOutlined, CalendarOutlined,
-  PictureOutlined, PhoneOutlined, MailOutlined
+  PictureOutlined, PhoneOutlined, MailOutlined, LoadingOutlined,
+  CloseCircleFilled
 } from '@ant-design/icons';
 import { ROOM_AMENITIES } from "@/constants/room.constants";
 import { useRouter } from 'next/navigation';
@@ -43,6 +44,8 @@ const HotelRooms: React.FC<RoomProps> = ({
   const [dateRange, setDateRange] = useState<any[]>([]);
   const [nights, setNights] = useState<number>(1);
   const [totalAmount, setTotalAmount] = useState<number>(0);
+  const [checkingAvailability, setCheckingAvailability] = useState<boolean>(false);
+  const [isRoomAvailable, setIsRoomAvailable] = useState<boolean>(true);
 
   const showBookingModal = (room: any) => {
     if (!session) {
@@ -51,6 +54,7 @@ const HotelRooms: React.FC<RoomProps> = ({
     }
     
     setBookingRoom(room);
+    setIsRoomAvailable(true); // Reset availability state
     
     const today = dayjs();
     const tomorrow = dayjs().add(1, 'day');
@@ -70,6 +74,38 @@ const HotelRooms: React.FC<RoomProps> = ({
     setTotalAmount(days * room.price_per_night);
     
     setIsBookingModalOpen(true);
+    
+    // Check room availability for selected dates
+    checkRoomAvailability(room._id, defaultStartDate, defaultEndDate);
+  };
+  
+  const checkRoomAvailability = async (roomId: string, startDate: dayjs.Dayjs, endDate: dayjs.Dayjs) => {
+    if (!roomId || !startDate || !endDate) return;
+    
+    setCheckingAvailability(true);
+    try {
+      // Sử dụng API check-room-dates đã có sẵn
+      const response = await sendRequest({
+        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/room-availability/check-room-dates`,
+        method: 'GET',
+        queryParams: {
+          roomId,
+          startDate: startDate.format('YYYY-MM-DD'),
+          endDate: endDate.format('YYYY-MM-DD')
+        }
+      });
+      
+      setIsRoomAvailable(response?.data?.isAvailable || false);
+      
+      if (!response?.data?.isAvailable) {
+        message.warning('Phòng không khả dụng trong khoảng thời gian đã chọn!');
+      }
+    } catch (error) {
+      console.error('Error checking room availability:', error);
+      setIsRoomAvailable(false);
+    } finally {
+      setCheckingAvailability(false);
+    }
   };
   
   const handleDateChange = (dates: any) => {
@@ -83,6 +119,9 @@ const HotelRooms: React.FC<RoomProps> = ({
       if (bookingRoom) {
         const newTotal = days * bookingRoom.price_per_night;
         setTotalAmount(newTotal);
+        
+        // Check availability again when dates change
+        checkRoomAvailability(bookingRoom._id, start, end);
       }
     }
   };
@@ -103,7 +142,34 @@ const HotelRooms: React.FC<RoomProps> = ({
         return;
       }
       
+      // Check availability once more before booking
       setLoading(true);
+      const startDate = values.dateRange[0];
+      const endDate = values.dateRange[1];
+      
+      try {
+        const availabilityCheck = await sendRequest({
+          url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/room-availability/check-room-dates`,
+          method: 'GET',
+          queryParams: {
+            roomId: bookingRoom._id,
+            startDate: startDate.format('YYYY-MM-DD'),
+            endDate: endDate.format('YYYY-MM-DD')
+          }
+        });
+        
+        if (!availabilityCheck?.data?.isAvailable) {
+          message.error('Phòng đã được đặt trong khoảng thời gian này. Vui lòng chọn ngày khác.');
+          setIsRoomAvailable(false);
+          setLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.error('Error on final availability check:', error);
+        message.error('Không thể kiểm tra tình trạng phòng. Vui lòng thử lại sau.');
+        setLoading(false);
+        return;
+      }
       
       const bookingData = {
         hotel_id: hotelId,
@@ -492,6 +558,24 @@ const HotelRooms: React.FC<RoomProps> = ({
                     disabledDate={(current) => current && current < dayjs().startOf('day')}
                   />
                 </Form.Item>
+                
+                {checkingAvailability && (
+                  <div style={{ marginBottom: 16 }}>
+                    <LoadingOutlined style={{ marginRight: 8 }} /> Đang kiểm tra tình trạng phòng...
+                  </div>
+                )}
+                
+                {!checkingAvailability && !isRoomAvailable && (
+                  <div style={{ color: '#ff4d4f', marginBottom: 16 }}>
+                    <CloseCircleFilled style={{ marginRight: 8 }} /> Phòng không khả dụng trong khoảng thời gian này
+                  </div>
+                )}
+                
+                {!checkingAvailability && isRoomAvailable && (
+                  <div style={{ color: '#52c41a', marginBottom: 16 }}>
+                    <CheckCircleFilled style={{ marginRight: 8 }} /> Phòng khả dụng trong khoảng thời gian này
+                  </div>
+                )}
               </Col>
               
               <Col span={12}>
@@ -577,6 +661,7 @@ const HotelRooms: React.FC<RoomProps> = ({
                     size="large" 
                     onClick={handleBooking}
                     loading={loading}
+                    disabled={checkingAvailability || !isRoomAvailable}
                   >
                     Tiến hành thanh toán
                   </Button>

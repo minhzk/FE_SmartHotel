@@ -114,7 +114,7 @@ const UserHeader = ({ session }: UserHeaderProps) => {
         key: 'logout',
         danger: true,
         icon: <LogoutOutlined />,
-        label: <span onClick={() => signOut({ callbackUrl: '/' })}>Đăng xuất</span>,
+        label: <span onClick={() => signOut({ callbackUrl: '/auth/login' })}>Đăng xuất</span>,
       }
     );
 

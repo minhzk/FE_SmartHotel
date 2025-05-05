@@ -110,7 +110,7 @@ const PaymentResultPage = () => {
   }
 
   return (
-    <div className="container" style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
+    <div className="container" style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
       <Card>
         {success ? (
           <Result
@@ -149,7 +149,7 @@ const PaymentResultPage = () => {
         {paymentDetails && (
           <div style={{ marginTop: '24px' }}>
             <Divider>Thông tin thanh toán</Divider>
-            <Descriptions bordered column={{ xs: 1, sm: 2 }}>
+            <Descriptions bordered column={{ xs: 1, sm: 2, md: 2, lg: 3 }} size="middle">
               <Descriptions.Item label="Mã giao dịch">
                 {paymentDetails.transaction_id}
               </Descriptions.Item>
@@ -175,7 +175,7 @@ const PaymentResultPage = () => {
         {bookingDetails && (
           <div style={{ marginTop: '24px' }}>
             <Divider>Thông tin đặt phòng</Divider>
-            <Descriptions bordered column={{ xs: 1, sm: 2 }}>
+            <Descriptions bordered column={{ xs: 1, sm: 2, md: 2, lg: 3 }} size="middle">
               <Descriptions.Item label="Mã đặt phòng">
                 {bookingDetails.booking_id}
               </Descriptions.Item>
@@ -207,6 +207,16 @@ const PaymentResultPage = () => {
       <style jsx global>{`
         .ant-result {
           padding: 24px 16px;
+        }
+        
+        .ant-descriptions-row > th,
+        .ant-descriptions-row > td {
+          padding: 12px 16px;
+        }
+        
+        .ant-descriptions-item-label {
+          min-width: 130px;
+          font-weight: 500;
         }
         
         @media (max-width: 575px) {
