@@ -41,7 +41,7 @@ const BookingCancel: React.FC<BookingCancelProps> = ({
           'Authorization': `Bearer ${session?.user?.access_token}`
         },
         body: {
-          booking_id: booking.booking_id,
+          _id: booking._id,
           cancellation_reason: values.reason
         }
       });
