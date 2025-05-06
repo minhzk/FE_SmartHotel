@@ -9,16 +9,17 @@ import {
   StarOutlined, 
   LogoutOutlined, 
   ShoppingCartOutlined, 
-  BellOutlined,
   HomeOutlined,
   LoginOutlined,
   UserAddOutlined,
-  DashboardOutlined
+  DashboardOutlined,
+  BellOutlined
 } from '@ant-design/icons';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import Image from 'next/image';
+import NotificationDropdown from '../notifications/notification-dropdown'; // Import component mới
 
 const { Header } = Layout;
 
@@ -66,9 +67,9 @@ const UserHeader = ({ session }: UserHeaderProps) => {
             label: <Link href="/bookings">Đơn đặt phòng</Link>,
           },
           {
-            key: 'messages',
+            key: 'notifications',
             icon: <BellOutlined />,
-            label: <Link href="/messages">Thông báo</Link>,
+            label: <Link href="/notifications">Thông báo</Link>, // Thay đổi link
           },
           {
             key: 'favorites',
@@ -176,14 +177,8 @@ const UserHeader = ({ session }: UserHeaderProps) => {
         {session?.user ? (
           // Hiển thị khi người dùng đã đăng nhập
           <>
-            <Badge count={3} size="small">
-              <Button 
-                type="text" 
-                icon={<BellOutlined style={{ fontSize: '18px' }} />} 
-                size="large"
-                shape="circle"
-              />
-            </Badge>
+            {/* Thay thế Badge và Button cũ bằng NotificationDropdown */}
+            <NotificationDropdown />
 
             <Badge count={1} size="small">
               <Button 
