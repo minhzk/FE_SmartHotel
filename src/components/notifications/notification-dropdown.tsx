@@ -45,6 +45,8 @@ const NotificationDropdown = () => {
         return <Tag color="red">Hủy</Tag>;
       case 'payment_received':
         return <Tag color="purple">Thanh toán</Tag>;
+      case 'payment_refunded':
+        return <Tag color="purple">Hoàn tiền</Tag>;
       case 'payment_due':
         return <Tag color="orange">Thanh toán</Tag>;
       case 'check_in_reminder':

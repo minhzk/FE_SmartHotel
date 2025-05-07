@@ -54,6 +54,8 @@ export default function NotificationsPage() {
         return <Tag color="red">Hủy</Tag>;
       case 'payment_received':
         return <Tag color="purple">Thanh toán</Tag>;
+      case 'payment_refunded':
+        return <Tag color="gold">Hoàn tiền</Tag>;
       case 'payment_due':
         return <Tag color="orange">Thanh toán</Tag>;
       case 'check_in_reminder':
@@ -73,6 +75,7 @@ export default function NotificationsPage() {
     { value: 'booking_confirmed', label: 'Xác nhận' },
     { value: 'booking_canceled', label: 'Hủy' },
     { value: 'payment_received', label: 'Thanh toán' },
+    { value: 'payment_refunded', label: 'Hoàn tiền' },
     { value: 'payment_due', label: 'Thanh toán' },
     { value: 'check_in_reminder', label: 'Nhắc nhở' },
     { value: 'review_received', label: 'Đánh giá' },
