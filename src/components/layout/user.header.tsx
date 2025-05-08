@@ -8,12 +8,12 @@ import {
   OrderedListOutlined, 
   StarOutlined, 
   LogoutOutlined, 
-  ShoppingCartOutlined, 
   HomeOutlined,
   LoginOutlined,
   UserAddOutlined,
   DashboardOutlined,
-  BellOutlined
+  BellOutlined,
+  MessageOutlined
 } from '@ant-design/icons';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -180,15 +180,15 @@ const UserHeader = ({ session }: UserHeaderProps) => {
             {/* Thay thế Badge và Button cũ bằng NotificationDropdown */}
             <NotificationDropdown />
 
-            <Badge count={1} size="small">
+            <Link href="/chat">
               <Button 
                 type="text" 
-                icon={<ShoppingCartOutlined style={{ fontSize: '18px' }} />} 
+                icon={<MessageOutlined style={{ fontSize: '18px' }} />} 
                 size="large"
                 shape="circle"
-                onClick={() => window.location.href = '/cart'}
+                title="Trợ lý chat AI"
               />
-            </Badge>
+            </Link>
 
             <Dropdown menu={{ items: generateUserMenuItems() }} trigger={['click']} arrow>
               <a onClick={(e) => e.preventDefault()} className="user-dropdown-link">

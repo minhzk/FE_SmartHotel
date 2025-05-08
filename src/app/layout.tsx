@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { NotificationProvider } from '@/contexts/notification.context';
+import ChatWidget from "@/components/chat/chat-widget";
 
 import '@/app/globals.css';
 import NextAuthWrapper from "@/library/next.auth.wrapper";
@@ -25,6 +26,7 @@ export default function RootLayout({
           <NextAuthWrapper>
             <NotificationProvider>
               {children}
+              <ChatWidget />
             </NotificationProvider>
           </NextAuthWrapper>
         </AntdRegistry>

@@ -14,6 +14,7 @@ import HotelGallery from './hotel-gallery';
 import HotelRooms from './hotel-rooms';
 import HotelReviews from './hotel-reviews';
 import FavoriteButton from './favorite-button';
+import ChatWidget from '../chat/chat-widget';
 import { useRouter } from 'next/navigation';
 import { sendRequest } from '@/utils/api';
 import { HOTEL_AMENITIES } from "@/constants/hotel.constants";
@@ -304,6 +305,9 @@ const HotelDetail: React.FC<HotelDetailProps> = ({ hotel, rooms, reviews, sessio
             </Affix>
           </Col>
         </Row>
+
+        {/* Add chat widget with hotel context */}
+        <ChatWidget hotelId={hotel._id} />
       </div>
       
       <style jsx global>{`

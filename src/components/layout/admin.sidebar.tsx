@@ -15,6 +15,7 @@ import {
     DollarOutlined,
     BookOutlined,
     SettingOutlined,
+    MessageOutlined,
 } from '@ant-design/icons';
 type MenuItem = Required<MenuProps>['items'][number];
 
@@ -62,6 +63,11 @@ const AdminSideBar = () => {
                     key: "reviews",
                     label: <Link href={"/dashboard/reviews"}>Quản lý đánh giá</Link>,
                     icon: <CommentOutlined />,
+                },
+                {
+                    key: "chats",
+                    label: <Link href={"/dashboard/chats"}>Quản lý chat</Link>,
+                    icon: <MessageOutlined />,
                 },
                 {
                     type: 'divider',
