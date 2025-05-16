@@ -311,7 +311,12 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                 {messages.map((msg) => (
                   <div key={msg._id} className="message-container">
                     <ChatBubble
-                      message={msg.message}
+                      message={msg.message.split('\n').map((line, index) => (
+                        <React.Fragment key={index}>
+                          {line}
+                          <br />
+                        </React.Fragment>
+                      ))}
                       isUser={msg.sender_type === 'user'}
                       timestamp={msg.timestamp}
                     />
@@ -421,6 +426,19 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
           flex: 1;
           overflow-y: auto;
           padding: 16px;
+        }
+        
+        /* Thêm CSS để hiển thị xuống dòng và căn trái */
+        :global(.chat-bubble .message-content) {
+          white-space: pre-wrap;
+          word-break: break-word;
+          text-align: left;
+          display: block;
+        }
+        
+        /* Đảm bảo các phần tử trong bubble đều căn trái */
+        :global(.chat-bubble) {
+          text-align: left;
         }
 
         .chat-input {
