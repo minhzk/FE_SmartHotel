@@ -2,16 +2,18 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Card, Row, Col, Typography, Space, Pagination, Spin, Select, Checkbox, Rate, Input, Button, Empty, Divider, Breadcrumb } from "antd";
+import { Card, Row, Col, Typography, Space, Pagination, Spin, Select, Checkbox, Rate, Input, Button, Empty, Divider, Breadcrumb, DatePicker } from "antd";
 import { FilterOutlined, HomeOutlined } from "@ant-design/icons";
 import { sendRequest } from "@/utils/api";
 import HotelCard from "./hotel-card";
 import queryString from 'query-string';
 import debounce from 'lodash/debounce';
+import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { Search } = Input;
+const { RangePicker } = DatePicker;
 
 interface IHotelListingProps {
   session: any;
@@ -51,6 +53,17 @@ const HotelListing = ({ session }: IHotelListingProps) => {
     searchParams?.get('current') ? Number(searchParams.get('current')) : 1
   );
   const [sortBy, setSortBy] = useState<string>(searchParams?.get('sortBy') || 'rating_desc');
+  const [checkIn, setCheckIn] = useState<string | null>(
+    searchParams?.get('check_in') || null
+  );
+  const [checkOut, setCheckOut] = useState<string | null>(
+    searchParams?.get('check_out') || null
+  );
+  const [dateRange, setDateRange] = useState<any>(
+    checkIn && checkOut 
+      ? [dayjs(checkIn), dayjs(checkOut)] 
+      : null
+  );
   
   // State cho input debouncing - dữ liệu người dùng đang nhập
   const [searchInput, setSearchInput] = useState<string>(search);
@@ -119,18 +132,35 @@ const HotelListing = ({ session }: IHotelListingProps) => {
     if (capacity) params.capacity = capacity;
     if (adults) params.adults = adults;
     if (children) params.children = children;
+    if (checkIn) params.check_in = checkIn;
+    if (checkOut) params.check_out = checkOut;
     if (sortBy) params.sortBy = sortBy;
     params.current = current;
     
     const queryStr = queryString.stringify(params);
     router.push(`/hotels?${queryStr}`);
-  }, [search, name, city, rating, minPrice, maxPrice, capacity, adults, children, sortBy, current]);
+  }, [search, name, city, rating, minPrice, maxPrice, capacity, adults, children, checkIn, checkOut, sortBy, current]);
 
   // Load data khi component mount và khi các filter thay đổi
   useEffect(() => {
     fetchHotels();
-  }, [current, sortBy, city, rating, minPrice, maxPrice, capacity, search, name, adults, children]);
+  }, [current, sortBy, city, rating, minPrice, maxPrice, capacity, search, name, adults, children, checkIn, checkOut]);
   
+  // Xử lý thay đổi range ngày
+  const handleDateChange = (dates: any) => {
+    if (dates && dates.length === 2) {
+      const startDate = dates[0]?.format('YYYY-MM-DD');
+      const endDate = dates[1]?.format('YYYY-MM-DD');
+      setDateRange(dates);
+      setCheckIn(startDate);
+      setCheckOut(endDate);
+    } else {
+      setDateRange(null);
+      setCheckIn(null);
+      setCheckOut(null);
+    }
+  };
+
   // Hàm lấy danh sách khách sạn từ API
   const fetchHotels = async () => {
     setLoading(true);
@@ -149,6 +179,8 @@ const HotelListing = ({ session }: IHotelListingProps) => {
     if (capacity) queryParams.capacity = capacity;
     if (adults) queryParams.adults = adults;
     if (children) queryParams.children = children;
+    if (checkIn) queryParams.check_in = checkIn;
+    if (checkOut) queryParams.check_out = checkOut;
     
     if (sortBy) {
       const [field, order] = sortBy.split('_');
@@ -194,6 +226,9 @@ const HotelListing = ({ session }: IHotelListingProps) => {
     setAdults(null);
     setChildrenInput('');
     setChildren(null);
+    setDateRange(null);
+    setCheckIn(null);
+    setCheckOut(null);
     setSortBy('rating_desc');
     setCurrent(1);
     router.push('/hotels');
@@ -324,6 +359,22 @@ const HotelListing = ({ session }: IHotelListingProps) => {
                   addonBefore="Đến"
                 />
               </Space>
+            </div>
+            
+            <Divider />
+            
+            <div className="filter-section">
+              <Title level={5}>Ngày đặt phòng</Title>
+              <RangePicker 
+                style={{ width: '100%' }}
+                value={dateRange}
+                onChange={handleDateChange}
+                format="DD/MM/YYYY"
+                placeholder={['Nhận phòng', 'Trả phòng']}
+              />
+              <div className="date-filter-tip" style={{ marginTop: 8, fontSize: 12, color: '#666' }}>
+                Chọn ngày để tìm phòng còn trống
+              </div>
             </div>
             
             <Divider />
