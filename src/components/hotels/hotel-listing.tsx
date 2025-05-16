@@ -26,32 +26,49 @@ const HotelListing = ({ session }: IHotelListingProps) => {
   const [meta, setMeta] = useState<any>({});
   
   // Filters
-  const [name, setName] = useState<string>(searchParams.get('name') || '');
-  const [city, setCity] = useState<string>(searchParams.get('city') || '');
+  const [search, setSearch] = useState<string>(searchParams?.get('search') || '');
+  const [name, setName] = useState<string>(searchParams?.get('name') || '');
+  const [city, setCity] = useState<string>(searchParams?.get('city') || '');
   const [rating, setRating] = useState<number | null>(
-    searchParams.get('rating') ? Number(searchParams.get('rating')) : null
+    searchParams?.get('rating') ? Number(searchParams.get('rating')) : null
   );
   const [minPrice, setMinPrice] = useState<number | null>(
-    searchParams.get('min_price') ? Number(searchParams.get('min_price')) : null
+    searchParams?.get('min_price') ? Number(searchParams.get('min_price')) : null
   );
   const [maxPrice, setMaxPrice] = useState<number | null>(
-    searchParams.get('max_price') ? Number(searchParams.get('max_price')) : null
+    searchParams?.get('max_price') ? Number(searchParams.get('max_price')) : null
   );
   const [capacity, setCapacity] = useState<number | null>(
-    searchParams.get('capacity') ? Number(searchParams.get('capacity')) : null
+    searchParams?.get('capacity') ? Number(searchParams.get('capacity')) : null
+  );
+  const [adults, setAdults] = useState<number | null>(
+    searchParams?.get('adults') ? Number(searchParams.get('adults')) : null
+  );
+  const [children, setChildren] = useState<number | null>(
+    searchParams?.get('children') ? Number(searchParams.get('children')) : null
   );
   const [current, setCurrent] = useState<number>(
-    searchParams.get('current') ? Number(searchParams.get('current')) : 1
+    searchParams?.get('current') ? Number(searchParams.get('current')) : 1
   );
-  const [sortBy, setSortBy] = useState<string>(searchParams.get('sortBy') || 'rating_desc');
+  const [sortBy, setSortBy] = useState<string>(searchParams?.get('sortBy') || 'rating_desc');
   
   // State cho input debouncing - dữ liệu người dùng đang nhập
+  const [searchInput, setSearchInput] = useState<string>(search);
   const [nameInput, setNameInput] = useState<string>(name);
   const [minPriceInput, setMinPriceInput] = useState<string>(minPrice?.toString() || '');
   const [maxPriceInput, setMaxPriceInput] = useState<string>(maxPrice?.toString() || '');
   const [capacityInput, setCapacityInput] = useState<string>(capacity?.toString() || '');
+  const [adultsInput, setAdultsInput] = useState<string>(adults?.toString() || '');
+  const [childrenInput, setChildrenInput] = useState<string>(children?.toString() || '');
 
   // Tạo các hàm debounced để cập nhật state chính
+  const updateSearch = useCallback(
+    debounce((value: string) => {
+      setSearch(value);
+    }, 500),
+    []
+  );
+
   const updateName = useCallback(
     debounce((value: string) => {
       setName(value);
@@ -91,29 +108,28 @@ const HotelListing = ({ session }: IHotelListingProps) => {
 
   // Effect để cập nhật URL khi các giá trị filter thay đổi
   useEffect(() => {
-    if (name === '' && city === '' && rating === null && minPrice === null && maxPrice === null && capacity === null) {
-      return;
-    }
-    
     const params: any = {};
     
+    if (search) params.search = search;
     if (name) params.name = normalizeSearchText(name);
     if (city) params.city = city;
     if (rating) params.rating = rating;
     if (minPrice) params.min_price = minPrice;
     if (maxPrice) params.max_price = maxPrice;
     if (capacity) params.capacity = capacity;
+    if (adults) params.adults = adults;
+    if (children) params.children = children;
     if (sortBy) params.sortBy = sortBy;
     params.current = current;
     
     const queryStr = queryString.stringify(params);
     router.push(`/hotels?${queryStr}`);
-  }, [name, city, rating, minPrice, maxPrice, capacity, sortBy, current]);
+  }, [search, name, city, rating, minPrice, maxPrice, capacity, adults, children, sortBy, current]);
 
   // Load data khi component mount và khi các filter thay đổi
   useEffect(() => {
     fetchHotels();
-  }, [current, sortBy, city, rating, minPrice, maxPrice, capacity, name]);
+  }, [current, sortBy, city, rating, minPrice, maxPrice, capacity, search, name, adults, children]);
   
   // Hàm lấy danh sách khách sạn từ API
   const fetchHotels = async () => {
@@ -124,12 +140,15 @@ const HotelListing = ({ session }: IHotelListingProps) => {
       pageSize: 10,
     };
     
+    if (search) queryParams.search = normalizeSearchText(search);
     if (name) queryParams.name = normalizeSearchText(name);
     if (city) queryParams.city = city;
     if (rating) queryParams.rating = rating;
     if (minPrice) queryParams.min_price = minPrice;
     if (maxPrice) queryParams.max_price = maxPrice;
     if (capacity) queryParams.capacity = capacity;
+    if (adults) queryParams.adults = adults;
+    if (children) queryParams.children = children;
     
     if (sortBy) {
       const [field, order] = sortBy.split('_');
@@ -159,6 +178,8 @@ const HotelListing = ({ session }: IHotelListingProps) => {
   
   // Reset các bộ lọc
   const resetFilters = () => {
+    setSearchInput('');
+    setSearch('');
     setNameInput('');
     setName('');
     setCity('');
@@ -169,6 +190,10 @@ const HotelListing = ({ session }: IHotelListingProps) => {
     setMaxPrice(null);
     setCapacityInput('');
     setCapacity(null);
+    setAdultsInput('');
+    setAdults(null);
+    setChildrenInput('');
+    setChildren(null);
     setSortBy('rating_desc');
     setCurrent(1);
     router.push('/hotels');
@@ -191,7 +216,22 @@ const HotelListing = ({ session }: IHotelListingProps) => {
         <Col xs={24} sm={24} md={6} lg={6} xl={5}>
           <Card title="Bộ lọc" className="filter-card">
             <div className="filter-section">
-              <Title level={5}>Tìm kiếm</Title>
+              <Title level={5}>Tìm kiếm chung</Title>
+              <Search
+                placeholder="Tìm theo tên hoặc thành phố"
+                value={searchInput}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setSearchInput(value);
+                  updateSearch(value);
+                }}
+                onSearch={() => {}}
+                style={{ marginBottom: 16 }}
+              />
+            </div>
+            
+            <div className="filter-section">
+              <Title level={5}>Tên khách sạn</Title>
               <Search
                 placeholder="Tên khách sạn"
                 value={nameInput}
@@ -290,6 +330,36 @@ const HotelListing = ({ session }: IHotelListingProps) => {
             
             <div className="filter-section">
               <Title level={5}>Số lượng khách</Title>
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <Input
+                  placeholder="Số người lớn"
+                  value={adultsInput}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setAdultsInput(value);
+                    setAdults(value ? Number(value) : null);
+                  }}
+                  type="number"
+                  min={0}
+                  addonBefore="Người lớn"
+                />
+                <Input
+                  placeholder="Số trẻ em"
+                  value={childrenInput}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setChildrenInput(value);
+                    setChildren(value ? Number(value) : null);
+                  }}
+                  type="number"
+                  min={0}
+                  addonBefore="Trẻ em"
+                />
+              </Space>
+            </div>
+            
+            <div className="filter-section">
+              <Title level={5}>Sức chứa</Title>
               <Input
                 placeholder="Số khách"
                 value={capacityInput}

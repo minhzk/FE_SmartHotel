@@ -12,15 +12,57 @@ const { RangePicker } = DatePicker;
 
 const HomePage = () => {
     const router = useRouter();
-    const [adults, setAdults] = useState(1);
+    const [adults, setAdults] = useState(0);
     const [rooms, setRooms] = useState(1);
     const [children, setChildren] = useState(0);
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+    const [destination, setDestination] = useState('');
+    const [dateRange, setDateRange] = useState<any>(null);
 
     const onChange = (key: string) => {
         console.log(key);
     };
 
+    // Hàm xử lý tìm kiếm và điều hướng đến trang kết quả
+    const handleSearch = () => {
+        // Xây dựng đối tượng query thay vì dùng URLSearchParams
+        const queryParams: Record<string, string> = {
+            current: '1',
+            pageSize: '10'
+        };
+        
+        // Thêm tham số search cho tìm kiếm theo tên hoặc thành phố
+        if (destination) {
+            queryParams.search = destination;
+        }
+        
+        // Thêm tham số số lượng người lớn và trẻ em
+        if (adults > 0) {
+            queryParams.adults = adults.toString();
+        }
+        
+        if (children > 0) {
+            queryParams.children = children.toString();
+        }
+        
+        // Thêm ngày check-in và check-out nếu có
+        if (dateRange && dateRange[0] && dateRange[1]) {
+            queryParams.check_in = dayjs(dateRange[0]).format('YYYY-MM-DD');
+            queryParams.check_out = dayjs(dateRange[1]).format('YYYY-MM-DD');
+        }
+        
+        // Chuyển đổi queryParams thành chuỗi URL
+        const queryString = new URLSearchParams(queryParams).toString();
+        
+        // Log để debug
+        console.log('Navigating with params:', queryParams);
+        
+        // Sử dụng router.replace thay vì push để tránh thêm vào history stack
+        // Thêm timestamp để tránh cache
+        const url = `/hotels?${queryString}&_t=${Date.now()}`;
+        router.replace(url);
+    };
+    
     // Hàm xử lý tăng giảm
     const increment = (setter: React.Dispatch<React.SetStateAction<number>>, value: number) => {
         setter(prev => prev + 1);
@@ -65,7 +107,7 @@ const HomePage = () => {
                         icon={<MinusOutlined />} 
                         shape="circle" 
                         onClick={() => decrement(setAdults, adults)} 
-                        disabled={adults <= 1}
+                        disabled={adults <= 0}
                     />
                     <span className="guest-counter-value">{adults}</span>
                     <Button 
@@ -147,7 +189,15 @@ const HomePage = () => {
 
     // Hàm xử lý chuyển hướng khi click vào destination
     const handleDestinationClick = (slug: string) => {
-        router.push(`/hotels?city=${encodeURIComponent(slug)}`);
+        const queryString = new URLSearchParams({
+            city: slug,
+            current: '1',
+            pageSize: '10',
+            _t: Date.now().toString()
+        }).toString();
+        
+        // Sử dụng replace thay vì push
+        router.replace(`/hotels?${queryString}`);
     };
 
     // Các tab tìm kiếm
@@ -167,7 +217,9 @@ const HomePage = () => {
                             <Input 
                                 size="large" 
                                 placeholder="Bạn muốn đi đâu?" 
-                                prefix={<SearchOutlined />} 
+                                prefix={<SearchOutlined />}
+                                value={destination}
+                                onChange={(e) => setDestination(e.target.value)}
                             />
                         </Col>
                         <Col xs={24} md={24} lg={8}>
@@ -176,6 +228,8 @@ const HomePage = () => {
                                 size="large"
                                 style={{ width: '100%' }}
                                 placeholder={['Nhận phòng', 'Trả phòng']}
+                                value={dateRange}
+                                onChange={(dates) => setDateRange(dates)}
                             />
                         </Col>
                         <Col xs={24} md={24} lg={8}>
@@ -198,7 +252,12 @@ const HomePage = () => {
                             </Popover>
                         </Col>
                         <Col xs={24}>
-                            <Button type="primary" size="large" block>
+                            <Button 
+                                type="primary" 
+                                size="large" 
+                                block
+                                onClick={handleSearch}
+                            >
                                 <SearchOutlined /> Tìm Kiếm
                             </Button>
                         </Col>
