@@ -80,14 +80,45 @@ const HotelCard: React.FC<IHotelCardProps> = ({ hotel, session }) => {
         <Col xs={24} sm={14} md={16}>
           <div className="hotel-info">
             <div className="hotel-header">
-              <Title level={4} className="hotel-name">
-                <Link href={`/hotels/${hotel._id}`}>{hotel.name}</Link>
-              </Title>
-              
-              <div className="hotel-location">
-                <EnvironmentOutlined style={{ marginRight: 5 }} />
-                <Text>{hotel.address}</Text>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <Title level={4} className="hotel-name">
+                    <Link href={`/hotels/${hotel._id}`}>{hotel.name}</Link>
+                  </Title>
+                  
+                  <div className="hotel-location">
+                    <EnvironmentOutlined style={{ marginRight: 5 }} />
+                    <Text>{hotel.address}</Text>
+                  </div>
+                </div>
+                {/* Hiển thị thông tin cảm xúc bên phải - Đơn giản như mẫu hình ảnh */} 
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                  <div>
+                    <span style={{
+                      border: '1px solid #1677ff',
+                      borderRadius: 8,
+                      padding: '6px 10px',
+                      fontWeight: 600,
+                      color: '#1677ff',
+                      fontSize: 18,
+                      background: '#f6faff',
+                      marginRight: 8
+                    }}>
+                      {hotel.sentiment_score ? Number(hotel.sentiment_score).toFixed(1) : '-'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                    <Text style={{ fontSize: 16, color: '#333' }}>
+                      {hotel.sentiment_label || 'Chưa có đánh giá'}
+                    </Text>
+                    <Text type="secondary" style={{ fontSize: 13 }}>
+                      {hotel.total_reviews ?? 0} nhận xét
+                    </Text>
+                  </div>
+                </div>
               </div>
+              
+              
               
               {hotel.ai_summary?.short_description && (
                 <Paragraph className="hotel-description">
