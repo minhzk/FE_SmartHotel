@@ -94,27 +94,34 @@ const BookingTable = (props: IProps) => {
         setLoading(true);
         try {
             const queryParams: any = {};
-            
-            // Pagination params
-            if (searchParams.has('current')) queryParams.current = searchParams.get('current');
-            if (searchParams.has('pageSize')) queryParams.pageSize = searchParams.get('pageSize');
-            
-            // Filter params
-            if (searchParams.has('status')) queryParams.status = searchParams.get('status');
-            if (searchParams.has('paymentStatus')) queryParams.payment_status = searchParams.get('paymentStatus');
-            if (searchParams.has('depositStatus')) queryParams.deposit_status = searchParams.get('depositStatus');
-            
-            // Date range
-            if (searchParams.has('startDate') && searchParams.has('endDate')) {
-                const startDate = searchParams.get('startDate');
-                const endDate = searchParams.get('endDate');
-                queryParams.dateRange = `${startDate},${endDate}`;
+
+            if(searchParams) {
+                // Pagination params
+                if (searchParams.has('current')) queryParams.current = searchParams.get('current');
+                if (searchParams.has('pageSize')) queryParams.pageSize = searchParams.get('pageSize');
+                
+                // Filter params
+                if (searchParams.has('status')) queryParams.status = searchParams.get('status');
+                if (searchParams.has('paymentStatus')) queryParams.payment_status = searchParams.get('paymentStatus');
+                if (searchParams.has('depositStatus')) queryParams.deposit_status = searchParams.get('depositStatus');
+                
+                // Date range
+                if (searchParams.has('startDate') && searchParams.has('endDate')) {
+                    const startDate = searchParams.get('startDate');
+                    const endDate = searchParams.get('endDate');
+                    queryParams.dateRange = `${startDate},${endDate}`;
+                }
+                
+                // Search term
+                if (searchParams.has('search')) {
+                    const searchValue = searchParams.get('search')?.trim();
+                    if (searchValue) queryParams.search = searchValue;
+                }
+                
+                console.log('Fetching bookings with params:', queryParams);
             }
             
-            // Search term
-            if (searchParams.has('search')) queryParams.search = searchParams.get('search');
             
-            console.log('Fetching bookings with params:', queryParams);
             
             const res = await sendRequest({
                 url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/bookings`,

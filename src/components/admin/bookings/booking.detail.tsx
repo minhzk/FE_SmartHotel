@@ -163,7 +163,10 @@ const BookingDetail = (props: IProps) => {
     };
     
     const getNights = () => {
-        return dayjs(booking.check_out_date).diff(dayjs(booking.check_in_date), 'day');
+        // Tính số đêm chỉ dựa vào ngày (bỏ qua giờ phút)
+        const checkIn = dayjs(booking.check_in_date).startOf('day');
+        const checkOut = dayjs(booking.check_out_date).startOf('day');
+        return checkOut.diff(checkIn, 'day');
     };
 
     const canConfirm = booking.status === BookingStatus.PENDING;
