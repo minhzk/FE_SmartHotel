@@ -9,7 +9,7 @@ export default function NextAuthWrapper({
     session?: any
 }) {
     return (
-        <SessionProvider session={session}>
+        <SessionProvider session={null}>
             {children}
         </SessionProvider>
     )

@@ -25,14 +25,14 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <AntdRegistry>
-          <NextAuthWrapper session={session}>
+        <NextAuthWrapper session={session}>
+          <AntdRegistry>
             <NotificationProvider>
               {children}
               <ChatWidget />
             </NotificationProvider>
-          </NextAuthWrapper>
-        </AntdRegistry>
+          </AntdRegistry>
+        </NextAuthWrapper>
       </body>
     </html>
   );
