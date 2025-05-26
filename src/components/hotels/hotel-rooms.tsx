@@ -254,148 +254,182 @@ const HotelRooms: React.FC<RoomProps> = ({
     setIsModalOpen(true);
   };
   
+  const ROOM_TYPE_LABELS: Record<string, string> = {
+    Standard: 'Phòng Tiêu chuẩn',
+    Deluxe: 'Phòng Cao cấp (Deluxe)',
+    Suite: 'Phòng Suite',
+    Executive: 'Phòng Điều hành (Executive)',
+    Family: 'Phòng Gia đình',
+    Villa: 'Biệt thự (Villa)',
+    Bungalow: 'Bungalow',
+    Studio: 'Phòng Studio',
+    Connecting: 'Phòng Thông nhau (Connecting)',
+    Accessible: 'Phòng cho người khuyết tật',
+    Penthouse: 'Penthouse',
+    Presidential: 'Phòng Tổng thống',
+  };
+
+  const groupRoomsByType = (rooms: any[]) => {
+    const groups: Record<string, any[]> = {};
+    rooms.forEach(room => {
+      const type = room.room_type || 'Khác';
+      if (!groups[type]) groups[type] = [];
+      groups[type].push(room);
+    });
+    return groups;
+  };
+  
+  const groupedRooms = groupRoomsByType(rooms);
+
   return (
     <>
       <div className="room-list">
-        {rooms.map((room) => (
-          <Card key={room._id} className="room-card" bordered={false}>
-            <Row gutter={[24, 16]}>
-              <Col xs={24} sm={8}>
-                <div className="room-image-container">
-                  {room.images && room.images.length > 0 ? (
-                    <Image 
-                      src={room.images[0].url} 
-                      alt={room.name}
-                      preview={false}
-                      className="room-image"
-                      onClick={() => showModal(room)}
-                    />
-                  ) : (
-                    <div className="room-image-placeholder">
-                      <PictureOutlined style={{ fontSize: 36, color: '#d9d9d9' }} />
-                      <Text type="secondary">Không có ảnh</Text>
-                    </div>
-                  )}
-                  <div className="image-count" onClick={() => showModal(room)}>
-                    {room.images && room.images.length > 1 && (
-                      <Badge count={`+${room.images.length - 1}`} />
-                    )}
-                  </div>
-                </div>
-              </Col>
-              
-              <Col xs={24} sm={10}>
-                <div className="room-info">
-                  <Title level={5} className="room-title">{room.name}</Title>
-                  <div className="room-features">
-                    <div className="room-feature">
-                      <AreaChartOutlined /> <Text>{room.size || 'N/A'} m²</Text>
-                    </div>
-                    <div className="room-feature">
-                      <UserOutlined /> <Text>Tối đa {room.capacity} người</Text>
-                    </div>
-                    <div className="room-feature">
-                      <HomeOutlined /> <Text>{formatBedConfig(room.bed_configuration)}</Text>
-                    </div>
-                  </div>
-                  
-                  <Paragraph ellipsis={{ rows: 2 }} className="room-description">
-                    {room.description}
-                  </Paragraph>
-                  
-                  <div className="room-amenities">
-                    {room.amenities && room.amenities.slice(0, 4).map((amenity: string, index: number) => {
-                      const amenityInfo = ROOM_AMENITIES.find(a => a.value === amenity);
-                      return (
-                        <Tag 
-                          key={index} 
-                          color="blue"
-                          style={{ 
-                            marginBottom: 4, 
-                            fontSize: '13px', 
-                            padding: '4px 8px',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            height: 'auto'
-                          }}
-                        >
-                          {amenityInfo?.icon && (
-                            <span style={{ 
-                              marginRight: '6px',
-                              display: 'flex',
-                              alignItems: 'center'
-                            }}>
-                              {amenityInfo.icon}
-                            </span>
-                          )}
-                          <span>{amenityInfo?.label || amenity}</span>
-                        </Tag>
-                      );
-                    })}
-                    {room.amenities && room.amenities.length > 4 && (
-                      <Tooltip title={room.amenities.slice(4).map((a: string) => {
-                        const amenInfo = ROOM_AMENITIES.find(i => i.value === a);
-                        return amenInfo?.label || a;
-                      }).join(', ')}>
-                        <Tag
-                          style={{ 
-                            marginBottom: 4, 
-                            fontSize: '13px', 
-                            padding: '4px 8px',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            height: 'auto'
-                          }}
-                        >
-                          <span style={{
-                            display: 'flex',
-                            alignItems: 'center'
-                          }}>
-                            +{room.amenities.length - 4}
-                          </span>
-                        </Tag>
-                      </Tooltip>
-                    )}
-                  </div>
-                </div>
-              </Col>
-              
-              <Col xs={24} sm={6}>
-                <div className="room-booking">
-                  <div className="room-price">
-                    <Title level={4}>{formatPrice(room.price_per_night)}</Title>
-                    <Text type="secondary">/ đêm</Text>
-                  </div>
-                  
-                  {room.is_bookable ? (
-                    <>
-                      {room.number_of_rooms > 0 ? (
-                        <div className="room-availability">
-                          <Tag color="green"><CheckCircleFilled /> Còn {room.number_of_rooms} phòng</Tag>
-                        </div>
+        {Object.entries(groupedRooms).map(([roomType, roomList]) => (
+          <div key={roomType} className="room-type-group" style={{ marginBottom: 32 }}>
+            <Title level={4} style={{ marginBottom: 16 }}>
+              {ROOM_TYPE_LABELS[roomType] || roomType}
+            </Title>
+            {roomList.map((room) => (
+              <Card key={room._id} className="room-card" bordered={false}>
+                <Row gutter={[24, 16]}>
+                  <Col xs={24} sm={8}>
+                    <div className="room-image-container">
+                      {room.images && room.images.length > 0 ? (
+                        <Image 
+                          src={room.images[0].url} 
+                          alt={room.name}
+                          preview={false}
+                          className="room-image"
+                          onClick={() => showModal(room)}
+                        />
                       ) : (
-                        <div className="room-availability">
-                          <Tag color="red">Hết phòng</Tag>
+                        <div className="room-image-placeholder">
+                          <PictureOutlined style={{ fontSize: 36, color: '#d9d9d9' }} />
+                          <Text type="secondary">Không có ảnh</Text>
                         </div>
                       )}
-                      <Button 
-                        type="primary" 
-                        block
-                        onClick={() => showBookingModal(room)}
-                        disabled={room.number_of_rooms <= 0}
-                      >
-                        Đặt ngay
-                      </Button>
-                    </>
-                  ) : (
-                    <div className="room-availability">
-                      <Tag color="red">Không khả dụng</Tag>
+                      <div className="image-count" onClick={() => showModal(room)}>
+                        {room.images && room.images.length > 1 && (
+                          <Badge count={`+${room.images.length - 1}`} />
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
-              </Col>
-            </Row>
-          </Card>
+                  </Col>
+                  
+                  <Col xs={24} sm={10}>
+                    <div className="room-info">
+                      <Title level={5} className="room-title">{room.name}</Title>
+                      <div className="room-features">
+                        <div className="room-feature">
+                          <AreaChartOutlined /> <Text>{room.size || 'N/A'} m²</Text>
+                        </div>
+                        <div className="room-feature">
+                          <UserOutlined /> <Text>Tối đa {room.capacity} người</Text>
+                        </div>
+                        <div className="room-feature">
+                          <HomeOutlined /> <Text>{formatBedConfig(room.bed_configuration)}</Text>
+                        </div>
+                      </div>
+                      
+                      <Paragraph ellipsis={{ rows: 2 }} className="room-description">
+                        {room.description}
+                      </Paragraph>
+                      
+                      <div className="room-amenities">
+                        {room.amenities && room.amenities.slice(0, 4).map((amenity: string, index: number) => {
+                          const amenityInfo = ROOM_AMENITIES.find(a => a.value === amenity);
+                          return (
+                            <Tag 
+                              key={index} 
+                              color="blue"
+                              style={{ 
+                                marginBottom: 4, 
+                                fontSize: '13px', 
+                                padding: '4px 8px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                height: 'auto'
+                              }}
+                            >
+                              {amenityInfo?.icon && (
+                                <span style={{ 
+                                  marginRight: '6px',
+                                  display: 'flex',
+                                  alignItems: 'center'
+                                }}>
+                                  {amenityInfo.icon}
+                                </span>
+                              )}
+                              <span>{amenityInfo?.label || amenity}</span>
+                            </Tag>
+                          );
+                        })}
+                        {room.amenities && room.amenities.length > 4 && (
+                          <Tooltip title={room.amenities.slice(4).map((a: string) => {
+                            const amenInfo = ROOM_AMENITIES.find(i => i.value === a);
+                            return amenInfo?.label || a;
+                          }).join(', ')}>
+                            <Tag
+                              style={{ 
+                                marginBottom: 4, 
+                                fontSize: '13px', 
+                                padding: '4px 8px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                height: 'auto'
+                              }}
+                            >
+                              <span style={{
+                                display: 'flex',
+                                alignItems: 'center'
+                              }}>
+                                +{room.amenities.length - 4}
+                              </span>
+                            </Tag>
+                          </Tooltip>
+                        )}
+                      </div>
+                    </div>
+                  </Col>
+                  
+                  <Col xs={24} sm={6}>
+                    <div className="room-booking">
+                      <div className="room-price">
+                        <Title level={4}>{formatPrice(room.price_per_night)}</Title>
+                        <Text type="secondary">/ đêm</Text>
+                      </div>
+                      
+                      {room.is_bookable ? (
+                        <>
+                          {room.number_of_rooms > 0 ? (
+                            <div className="room-availability">
+                              <Tag color="green"><CheckCircleFilled /> Còn {room.number_of_rooms} phòng</Tag>
+                            </div>
+                          ) : (
+                            <div className="room-availability">
+                              <Tag color="red">Hết phòng</Tag>
+                            </div>
+                          )}
+                          <Button 
+                            type="primary" 
+                            block
+                            onClick={() => showBookingModal(room)}
+                            disabled={room.number_of_rooms <= 0}
+                          >
+                            Đặt ngay
+                          </Button>
+                        </>
+                      ) : (
+                        <div className="room-availability">
+                          <Tag color="red">Không khả dụng</Tag>
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+                </Row>
+              </Card>
+            ))}
+          </div>
         ))}
       </div>
       
@@ -797,6 +831,10 @@ const HotelRooms: React.FC<RoomProps> = ({
         
         .booking-total {
           padding-top: 16px;
+        }
+        
+        .room-type-group {
+          /* Có thể thêm style nếu muốn */
         }
         
         @media (max-width: 575px) {
