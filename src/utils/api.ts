@@ -76,14 +76,16 @@ export const sendRequest = async <T>(props: IRequest) => {
     if (processedResponse.ok) {
         return processedResponse.json() as T; //generic
     } else {
-        return processedResponse.json().then(function (json: Record<string, any>) {
-            // to be able to access error status when you catch the error
-            return {
-            statusCode: processedResponse.status,
-            message: json?.message ?? '',
-            error: json?.error ?? '',
-            } as T;
-        });
+        return processedResponse
+            .json()
+            .then(function (json: Record<string, any>) {
+                // to be able to access error status when you catch the error
+                return {
+                    statusCode: processedResponse.status,
+                    message: json?.message ?? '',
+                    error: json?.error ?? '',
+                } as T;
+            });
     }
 };
 
@@ -124,13 +126,18 @@ export const sendRequestFile = async <T>(props: IRequest) => {
     if (processedResponse.ok) {
         return processedResponse.json() as T; //generic
     } else {
-        return processedResponse.json().then(function (json: Record<string, any>) {
-            // to be able to access error status when you catch the error
-            return {
-            statusCode: processedResponse.status,
-            message: json?.message ?? '',
-            error: json?.error ?? '',
-            } as T;
-        });
+        if (processedResponse.status === 401) {
+            signOut({ redirectTo: '/auth/login' });
+            throw new Error('Authentication required');
+        }
+        return processedResponse
+            .json()
+            .then(function (json: Record<string, any>) {
+                return {
+                    statusCode: processedResponse.status,
+                    message: json?.message ?? '',
+                    error: json?.error ?? '',
+                } as T;
+            });
     }
 };

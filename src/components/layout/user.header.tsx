@@ -17,7 +17,7 @@ import {
 } from '@ant-design/icons';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
 import NotificationDropdown from '../notifications/notification-dropdown'; // Import component mới
 
@@ -43,6 +43,13 @@ const UserHeader = ({ session }: UserHeaderProps) => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Bắt đăng nhập lại nếu refresh token lỗi
+  useEffect(() => {
+    if (session?.error === 'RefreshTokenError') {
+      signOut({ callbackUrl: '/auth/login' });
+    }
+  }, [session]);
 
   // Menu items cho người dùng đã đăng nhập
   const generateUserMenuItems = () => {

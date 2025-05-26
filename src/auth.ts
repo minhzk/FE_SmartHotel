@@ -95,6 +95,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         token.expires_at = decodedToken.exp
                             ? new Date(decodedToken.exp * 1000)
                             : undefined;
+                    } else {
+                        // Nếu BE trả về lỗi (ví dụ refresh token hết hạn), response.data sẽ không có
+                        return { ...token, error: 'RefreshTokenError' };
                     }
                 } catch (error) {
                     console.error('Failed to refresh token:', error);
