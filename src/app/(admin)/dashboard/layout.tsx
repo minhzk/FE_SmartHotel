@@ -1,31 +1,35 @@
+'use client';
+
 import React from 'react';
 import AdminFooter from '@/components/layout/admin.footer';
-import AdminHeader from '@/components/layout/admin.header';
+import UserHeader from '@/components/layout/user.header';
 import AdminSideBar from '@/components/layout/admin.sidebar';
 import AdminContent from '@/components/layout/admin.content';
 import { AdminContextProvider } from '@/library/admin.context';
-import { auth } from '@/auth';
-import { redirect } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import RequireRole from '@/components/auth/require-role';
+import { Spin } from 'antd';
 
-const AdminLayout = async({
+const AdminLayout = ({
     children,
   }: Readonly<{
     children: React.ReactNode;
 }>) => {
-    // Lấy session từ auth
-    const session = await auth()
-    
-    // Kiểm tra quyền ở server-side
-    if (!session) {
-        // Nếu chưa đăng nhập, chuyển hướng đến trang đăng nhập
-        return redirect('/auth/login?callbackUrl=/dashboard');
-    }
-    
-    // Kiểm tra role
-    if (session?.user?.role !== 'ADMIN') {
-        // Nếu không phải ADMIN, chuyển hướng đến trang từ chối quyền
-        return redirect('/access-denied');
+    // Use next-auth's useSession hook instead of calling auth() directly
+    const { data: session, status } = useSession();
+
+    // Show loading while session is being determined
+    if (status === 'loading') {
+        return (
+            <div style={{
+                minHeight: '100vh',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+            }}>
+                <Spin size="large" />
+            </div>
+        );
     }
 
     return (
@@ -35,7 +39,7 @@ const AdminLayout = async({
                     <AdminSideBar />
                 </div>
                 <div className='right-side' style={{ flex: 1 }}>
-                    <AdminHeader session={session} />
+                    <UserHeader session={session} />
                     <AdminContent>
                         {/* Kiểm tra thêm một lần nữa ở client-side để bảo vệ kỹ lưỡng hơn */}
                         <RequireRole role="ADMIN">
