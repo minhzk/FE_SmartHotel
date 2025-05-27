@@ -23,6 +23,7 @@ enum BookingStatus {
   CONFIRMED = 'confirmed',
   CANCELED = 'canceled',
   COMPLETED = 'completed',
+  EXPIRED = 'expired',
 }
 
 enum PaymentStatus {
@@ -31,6 +32,7 @@ enum PaymentStatus {
   PARTIALLY_PAID = 'partially_paid',
   FAILED = 'failed',
   REFUNDED = 'refunded',
+  EXPIRED = 'expired',
 }
 
 enum DepositStatus {
@@ -291,6 +293,8 @@ const BookingList: React.FC<BookingListProps> = ({ session }) => {
         return <Tag icon={<CloseCircleOutlined />} color="red">Đã hủy</Tag>;
       case BookingStatus.COMPLETED:
         return <Tag icon={<CheckCircleOutlined />} color="blue">Hoàn thành</Tag>;
+      case BookingStatus.EXPIRED:
+        return <Tag icon={<CloseCircleOutlined />} color="volcano">Hết hạn</Tag>;
       default:
         return <Tag color="default">{status}</Tag>;
     }
@@ -308,6 +312,8 @@ const BookingList: React.FC<BookingListProps> = ({ session }) => {
         return <Tag color="red">Thanh toán thất bại</Tag>;
       case PaymentStatus.REFUNDED:
         return <Tag color="purple">Đã hoàn tiền</Tag>;
+      case PaymentStatus.EXPIRED:
+        return <Tag color="volcano">Hết hạn thanh toán</Tag>;
       default:
         return <Tag color="default">{status}</Tag>;
     }
@@ -422,8 +428,10 @@ const BookingList: React.FC<BookingListProps> = ({ session }) => {
             </Button>
           )}
           
-          {/* Chỉ hiện nút hủy nếu đơn hàng chưa hoàn thành và chưa bị hủy */}
-          {record.status !== BookingStatus.COMPLETED && 
+          {/* Chỉ hiện nút hủy nếu đã đặt cọc nhưng chưa thanh toán toàn bộ */}
+          {record.deposit_status === DepositStatus.PAID && 
+            record.payment_status === PaymentStatus.PARTIALLY_PAID &&
+            record.status !== BookingStatus.COMPLETED && 
             record.status !== BookingStatus.CANCELED && (
             <Button 
               danger 
@@ -479,6 +487,7 @@ const BookingList: React.FC<BookingListProps> = ({ session }) => {
           <TabPane tab="Đã xác nhận" key={BookingStatus.CONFIRMED} />
           <TabPane tab="Hoàn thành" key={BookingStatus.COMPLETED} />
           <TabPane tab="Đã hủy" key={BookingStatus.CANCELED} />
+          <TabPane tab="Hết hạn" key={BookingStatus.EXPIRED} />
         </Tabs>
 
         {bookings.length > 0 ? (

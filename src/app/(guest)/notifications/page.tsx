@@ -19,7 +19,8 @@ export default function NotificationsPage() {
   const { 
     notifications, 
     loading, 
-    fetchNotifications, 
+    fetchNotifications,
+    loadMoreNotifications,
     markAsRead, 
     markAllAsRead, 
     deleteNotification 
@@ -27,6 +28,7 @@ export default function NotificationsPage() {
   
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     fetchNotifications();
@@ -52,6 +54,8 @@ export default function NotificationsPage() {
         return <Tag color="green">Xác nhận</Tag>;
       case 'booking_canceled':
         return <Tag color="red">Hủy</Tag>;
+      case 'booking_expired':
+        return <Tag color="volcano">Hết hạn</Tag>;
       case 'payment_received':
         return <Tag color="purple">Thanh toán</Tag>;
       case 'payment_refunded':
@@ -74,6 +78,7 @@ export default function NotificationsPage() {
     { value: 'booking_created', label: 'Đặt phòng' },
     { value: 'booking_confirmed', label: 'Xác nhận' },
     { value: 'booking_canceled', label: 'Hủy' },
+    { value: 'booking_expired', label: 'Hết hạn' },
     { value: 'payment_received', label: 'Thanh toán' },
     { value: 'payment_refunded', label: 'Hoàn tiền' },
     { value: 'payment_due', label: 'Thanh toán' },
@@ -93,6 +98,12 @@ export default function NotificationsPage() {
       ),
     })),
     onClick: ({ key }) => setSelectedType(key === 'all' ? null : key),
+  };
+
+  const handleLoadMore = async () => {
+    setLoadingMore(true);
+    await loadMoreNotifications();
+    setLoadingMore(false);
   };
 
   return (
@@ -139,68 +150,83 @@ export default function NotificationsPage() {
         
         <Spin spinning={loading}>
           {filteredNotifications.length > 0 ? (
-            <List
-              itemLayout="horizontal"
-              dataSource={filteredNotifications}
-              renderItem={(item) => (
-                <List.Item
-                  key={item._id}
-                  style={{
-                    backgroundColor: item.read ? 'transparent' : 'rgba(24, 144, 255, 0.05)',
-                    padding: '16px',
-                    borderRadius: '4px',
-                    marginBottom: '8px',
-                  }}
-                  actions={[
-                    !item.read ? (
+            <>
+              <List
+                itemLayout="horizontal"
+                dataSource={filteredNotifications}
+                renderItem={(item) => (
+                  <List.Item
+                    key={item._id}
+                    style={{
+                      backgroundColor: item.read ? 'transparent' : 'rgba(24, 144, 255, 0.05)',
+                      padding: '16px',
+                      borderRadius: '4px',
+                      marginBottom: '8px',
+                    }}
+                    actions={[
+                      !item.read ? (
+                        <Button 
+                          key="mark-read"
+                          type="text"
+                          size="small"
+                          onClick={() => markAsRead(item._id)}
+                          icon={<CheckOutlined />}
+                        >
+                          Đánh dấu đã đọc
+                        </Button>
+                      ) : null,
                       <Button 
-                        key="mark-read"
+                        key="delete"
                         type="text"
+                        danger
                         size="small"
-                        onClick={() => markAsRead(item._id)}
-                        icon={<CheckOutlined />}
+                        onClick={() => deleteNotification(item._id)}
+                        icon={<DeleteOutlined />}
                       >
-                        Đánh dấu đã đọc
+                        Xóa
                       </Button>
-                    ) : null,
-                    <Button 
-                      key="delete"
-                      type="text"
-                      danger
-                      size="small"
-                      onClick={() => deleteNotification(item._id)}
-                      icon={<DeleteOutlined />}
-                    >
-                      Xóa
-                    </Button>
-                  ].filter(Boolean)}
-                >
-                  <List.Item.Meta
-                    title={
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        {getNotificationType(item.type)}
-                        <span style={{ fontWeight: item.read ? 'normal' : 'bold' }}>
-                          {item.title}
-                        </span>
-                      </div>
-                    }
-                    description={
-                      <>
-                        <div style={{ margin: '8px 0' }}>{item.message}</div>
-                        <div style={{ color: '#8c8c8c', fontSize: '12px' }}>
-                          {dayjs(item.createdAt).fromNow()}
-                          {item.read && item.read_at && (
-                            <span style={{ marginLeft: 8 }}>
-                              · Đã đọc {dayjs(item.read_at).fromNow()}
-                            </span>
-                          )}
+                    ].filter(Boolean)}
+                  >
+                    <List.Item.Meta
+                      title={
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          {getNotificationType(item.type)}
+                          <span style={{ fontWeight: item.read ? 'normal' : 'bold' }}>
+                            {item.title}
+                          </span>
                         </div>
-                      </>
-                    }
-                  />
-                </List.Item>
+                      }
+                      description={
+                        <>
+                          <div style={{ margin: '8px 0' }}>{item.message}</div>
+                          <div style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                            {dayjs(item.createdAt).fromNow()}
+                            {item.read && item.read_at && (
+                              <span style={{ marginLeft: 8 }}>
+                                · Đã đọc {dayjs(item.read_at).fromNow()}
+                              </span>
+                            )}
+                          </div>
+                        </>
+                      }
+                    />
+                  </List.Item>
+                )}
+              />
+              
+              {/* Load More Button */}
+              {filteredNotifications.length >= 20 && (
+                <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                  <Button 
+                    type="default" 
+                    loading={loadingMore}
+                    onClick={handleLoadMore}
+                  >
+                    Tải thêm thông báo
+                  </Button>
+                </div>
               )}
-            />
+            </>
           ) : (
             <Empty 
               description={

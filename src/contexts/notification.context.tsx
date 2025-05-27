@@ -24,6 +24,7 @@ interface NotificationContextType {
   unreadCount: number;
   loading: boolean;
   fetchNotifications: () => Promise<void>;
+  loadMoreNotifications: () => Promise<void>;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
@@ -88,7 +89,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       const res = await sendRequest({
         url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/notifications`,
         method: 'GET',
-        queryParams: { current: 1, pageSize: 20 },
+        queryParams: { current: 1, pageSize: 50 }, // Tăng pageSize để lấy nhiều thông báo hơn
         headers: {
           'Authorization': `Bearer ${session.user.access_token}`
         }
@@ -101,6 +102,28 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       console.error('Error fetching notifications:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadMoreNotifications = async () => {
+    if (!session?.user?.access_token) return;
+    
+    try {
+      const currentPage = Math.ceil(notifications.length / 20) + 1;
+      const res = await sendRequest({
+        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/notifications`,
+        method: 'GET',
+        queryParams: { current: currentPage, pageSize: 20 },
+        headers: {
+          'Authorization': `Bearer ${session.user.access_token}`
+        }
+      });
+      
+      if (res?.data?.results && res.data.results.length > 0) {
+        setNotifications(prev => [...prev, ...res.data.results]);
+      }
+    } catch (error) {
+      console.error('Error loading more notifications:', error);
     }
   };
 
@@ -199,6 +222,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     unreadCount,
     loading,
     fetchNotifications,
+    loadMoreNotifications,
     markAsRead,
     markAllAsRead,
     deleteNotification
