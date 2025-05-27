@@ -167,7 +167,7 @@ const HotelListing = ({ session }: IHotelListingProps) => {
     
     const queryParams: any = {
       current,
-      pageSize: 10,
+      pageSize: 5,
     };
     
     if (search) queryParams.search = normalizeSearchText(search);
