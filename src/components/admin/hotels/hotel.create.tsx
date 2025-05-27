@@ -62,7 +62,7 @@ const HotelCreate = (props: IProps) => {
             
             const payload = {
                 ...values,
-                rating: Number(values.rating || 0),
+                rating: 0,
                 min_price: Number(values.min_price || 0),
                 max_price: Number(values.max_price || 0),
                 max_capacity: Number(values.max_capacity || 1),
@@ -198,7 +198,6 @@ const HotelCreate = (props: IProps) => {
                 initialValues={{
                     is_active: true,
                     accept_deposit: true,
-                    rating: null,
                     city: 'ha noi',
                 }}
             >
@@ -270,22 +269,7 @@ const HotelCreate = (props: IProps) => {
                 </Row>
 
                 <Row gutter={[16, 0]}>
-                    <Col span={6}>
-                        <Form.Item
-                            label={
-                                <span>
-                                    Đánh giá
-                                    <Tooltip title="Số sao của khách sạn (1-5)">
-                                        <InfoCircleOutlined style={{ marginLeft: 8 }} />
-                                    </Tooltip>
-                                </span>
-                            }
-                            name="rating"
-                        >
-                            <InputNumber min={1} max={5} placeholder="Số sao" style={{ width: '100%' }} />
-                        </Form.Item>
-                    </Col>
-                    <Col span={6}>
+                    <Col span={8}>
                         <Form.Item
                             label="Giá tối thiểu"
                             name="min_price"
@@ -300,7 +284,7 @@ const HotelCreate = (props: IProps) => {
                             />
                         </Form.Item>
                     </Col>
-                    <Col span={6}>
+                    <Col span={8}>
                         <Form.Item
                             label="Giá tối đa"
                             name="max_price"
@@ -315,12 +299,12 @@ const HotelCreate = (props: IProps) => {
                             />
                         </Form.Item>
                     </Col>
-                    <Col span={6}>
+                    <Col span={8}>
                         <Form.Item
                             label="Sức chứa tối đa"
                             name="max_capacity"
                             tooltip="Số lượng người tối đa mà khách sạn có thể phục vụ"
-                            rules={[{ required: true, message: 'Vui lòng nhập số người tối đa!' }]}
+                            rules={[{ required: true, message: 'Vui lòng nhập số người tối đa!' }]}
                         >
                             <InputNumber min={1} style={{ width: '100%' }} />
                         </Form.Item>

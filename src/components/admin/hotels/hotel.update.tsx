@@ -36,7 +36,6 @@ const HotelUpdate = (props: IProps) => {
                 city: dataUpdate.city,
                 address: dataUpdate.address,
                 description: dataUpdate.description,
-                rating: dataUpdate.rating,
                 min_price: dataUpdate.min_price,
                 max_price: dataUpdate.max_price,
                 max_capacity: dataUpdate.max_capacity,
@@ -112,7 +111,6 @@ const HotelUpdate = (props: IProps) => {
                 city: values.city,
                 address: values.address,
                 description: values.description,
-                rating: Number(values.rating || 5),
                 min_price: Number(values.min_price || 0),
                 max_price: Number(values.max_price || 0),
                 max_capacity: Number(values.max_capacity || 1),
@@ -314,22 +312,7 @@ const HotelUpdate = (props: IProps) => {
                 </Row>
 
                 <Row gutter={[16, 0]}>
-                    <Col span={6}>
-                        <Form.Item
-                            label={
-                                <span>
-                                    Đánh giá
-                                    <Tooltip title="Số sao của khách sạn (1-5)">
-                                        <InfoCircleOutlined style={{ marginLeft: 8 }} />
-                                    </Tooltip>
-                                </span>
-                            }
-                            name="rating"
-                        >
-                            <InputNumber min={1} max={5} placeholder="Số sao" style={{ width: '100%' }} />
-                        </Form.Item>
-                    </Col>
-                    <Col span={6}>
+                    <Col span={8}>
                         <Form.Item
                             label="Giá tối thiểu"
                             name="min_price"
@@ -344,7 +327,7 @@ const HotelUpdate = (props: IProps) => {
                             />
                         </Form.Item>
                     </Col>
-                    <Col span={6}>
+                    <Col span={8}>
                         <Form.Item
                             label="Giá tối đa"
                             name="max_price"
@@ -359,7 +342,7 @@ const HotelUpdate = (props: IProps) => {
                             />
                         </Form.Item>
                     </Col>
-                    <Col span={6}>
+                    <Col span={8}>
                         <Form.Item
                             label="Sức chứa tối đa"
                             name="max_capacity"
