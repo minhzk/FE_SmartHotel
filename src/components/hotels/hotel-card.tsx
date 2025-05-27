@@ -59,9 +59,13 @@ const HotelCard: React.FC<IHotelCardProps> = ({ hotel, session }) => {
               preview={false}
             />
             
-            {hotel.rating && (
+            {hotel.rating && hotel.rating > 0 ? (
               <div className="hotel-rating-badge">
                 <Tag color="#1677ff">{hotel.rating} sao</Tag>
+              </div>
+            ) : (
+              <div className="hotel-rating-badge">
+                <Tag color="#faad14">Chưa được đánh giá</Tag>
               </div>
             )}
             
@@ -99,17 +103,18 @@ const HotelCard: React.FC<IHotelCardProps> = ({ hotel, session }) => {
                       borderRadius: 8,
                       padding: '6px 10px',
                       fontWeight: 600,
-                      color: '#1677ff',
+                      color: hotel.sentiment_score && hotel.sentiment_score > 0 ? '#1677ff' : '#999',
                       fontSize: 18,
-                      background: '#f6faff',
-                      marginRight: 8
+                      background: hotel.sentiment_score && hotel.sentiment_score > 0 ? '#f6faff' : '#f5f5f5',
+                      marginRight: 8,
+                      borderColor: hotel.sentiment_score && hotel.sentiment_score > 0 ? '#1677ff' : '#d9d9d9'
                     }}>
-                      {hotel.sentiment_score ? Number(hotel.sentiment_score).toFixed(1) : '-'}
+                      {hotel.sentiment_score && hotel.sentiment_score > 0 ? Number(hotel.sentiment_score).toFixed(1) : '-'}
                     </span>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                     <Text style={{ fontSize: 16, color: '#333' }}>
-                      {hotel.sentiment_label || 'Chưa có đánh giá'}
+                      {hotel.total_reviews && hotel.total_reviews > 0 ? hotel.sentiment_label : 'Chưa có đánh giá'}
                     </Text>
                     <Text type="secondary" style={{ fontSize: 13 }}>
                       {hotel.total_reviews ?? 0} nhận xét
