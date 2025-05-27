@@ -61,7 +61,7 @@ export default function NotificationsPage() {
       case 'payment_refunded':
         return <Tag color="gold">Hoàn tiền</Tag>;
       case 'payment_due':
-        return <Tag color="orange">Thanh toán</Tag>;
+        return <Tag color="orange">Nhắc Thanh toán</Tag>;
       case 'check_in_reminder':
         return <Tag color="cyan">Nhắc nhở</Tag>;
       case 'review_received':
