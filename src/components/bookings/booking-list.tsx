@@ -250,23 +250,16 @@ const BookingList: React.FC<BookingListProps> = ({ session }) => {
 
   // Cập nhật hàm canReview để kiểm tra thêm điều kiện
   const canReview = (booking: IBooking) => {
-    // Log để debug
-    console.log('Checking canReview for booking:', booking.booking_id);
-    console.log('Hotel ID:', booking.hotel_id);
-    console.log('Reviewed bookings:', reviewedBookings);
     
     // Kiểm tra xem hotel_id của booking có trong danh sách reviewedHotels không
     const hasReviewed = reviewedBookings.some(id => id === booking.hotel_id);
-    console.log('Has reviewed:', hasReviewed);
     
     // Điều kiện để hiển thị nút đánh giá:
     // 1. Booking đã hoàn thành
-    // 2. Đã qua ngày check-out
-    // 3. Đã thanh toán đầy đủ
-    // 4. Chưa đánh giá khách sạn này
+    // 2. Đã thanh toán đầy đủ
+    // 3. Chưa đánh giá khách sạn này
     return (
       booking.status === BookingStatus.COMPLETED && 
-      dayjs(booking.check_out_date).isBefore(dayjs()) && 
       booking.payment_status === PaymentStatus.PAID &&
       !hasReviewed
     );
