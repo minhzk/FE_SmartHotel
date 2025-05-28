@@ -38,6 +38,21 @@ const PaymentSelection: React.FC<PaymentSelectionProps> = ({
   const isPartiallyPaid = bookingData?.payment_status === 'partially_paid';
   const isDepositPaid = bookingData?.deposit_status === 'paid';
   
+  // Kiểm tra khoảng cách thời gian từ ngày đặt phòng đến ngày check-in
+  const isBookingWithin2Days = () => {
+    if (!bookingData?.check_in_date || !bookingData?.createdAt) return false;
+    
+    const checkInDate = new Date(bookingData.check_in_date);
+    const bookingDate = new Date(bookingData.createdAt);
+    const diffTime = checkInDate.getTime() - bookingDate.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays <= 2;
+  };
+
+  // Kiểm tra có thể đặt cọc không (phải thỏa mãn tất cả điều kiện)
+  const canUseDeposit = acceptDeposit && !isBookingWithin2Days() && !isPartiallyPaid && !isDepositPaid;
+  
   // Kiểm tra query parameter để xác định loại thanh toán
   useEffect(() => {
     const type = searchParams.get('type');
@@ -50,15 +65,15 @@ const PaymentSelection: React.FC<PaymentSelectionProps> = ({
     else if (type === 'remaining') {
       setPaymentType('remaining');
     } 
-    // Nếu có query parameter type=deposit, chọn đặt cọc
-    else if (type === 'deposit' && acceptDeposit) {
+    // Nếu có query parameter type=deposit và có thể đặt cọc
+    else if (type === 'deposit' && canUseDeposit) {
       setPaymentType('deposit');
     }
-    // Mặc định là thanh toán toàn bộ
+    // Mặc định là thanh toán toàn bộ (hoặc bắt buộc nếu booking trong vòng 2 ngày)
     else {
       setPaymentType('full_payment');
     }
-  }, [searchParams, acceptDeposit, isPartiallyPaid, isDepositPaid]);
+  }, [searchParams, canUseDeposit, isPartiallyPaid, isDepositPaid]);
 
   // Format tiền VND
   const formatCurrency = (amount: number) => {
@@ -196,7 +211,7 @@ const PaymentSelection: React.FC<PaymentSelectionProps> = ({
           <Col span={24} md={8}>
             <Card type="inner" title="Thanh toán" className="payment-methods">
               {/* Loại thanh toán - Chỉ hiển thị khi chưa đặt cọc và khách sạn cho phép đặt cọc */}
-              {acceptDeposit && !isPartiallyPaid && !isDepositPaid && (
+              {canUseDeposit && (
                 <>
                   <Title level={5}>Chọn loại thanh toán</Title>
                   <Radio.Group 
@@ -223,6 +238,24 @@ const PaymentSelection: React.FC<PaymentSelectionProps> = ({
                       </Radio>
                     </Space>
                   </Radio.Group>
+                  <Divider />
+                </>
+              )}
+
+              {/* Hiển thị thông báo nếu bắt buộc thanh toán toàn bộ */}
+              {!canUseDeposit && !isPartiallyPaid && !isDepositPaid && (
+                <>
+                  <Alert
+                    message="Thông báo thanh toán"
+                    description={
+                      isBookingWithin2Days() 
+                        ? "Do booking trong vòng 2 ngày trước check-in, bạn cần thanh toán toàn bộ số tiền."
+                        : "Bạn cần thanh toán toàn bộ số tiền cho đặt phòng này."
+                    }
+                    type="info"
+                    showIcon
+                    style={{ marginBottom: 16 }}
+                  />
                   <Divider />
                 </>
               )}
