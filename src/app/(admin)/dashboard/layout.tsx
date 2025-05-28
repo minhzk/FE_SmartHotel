@@ -41,10 +41,21 @@ const AdminLayout = ({
                 <div className='right-side' style={{ flex: 1 }}>
                     <UserHeader session={session} />
                     <AdminContent>
-                        {/* Kiểm tra thêm một lần nữa ở client-side để bảo vệ kỹ lưỡng hơn */}
-                        <RequireRole role="ADMIN">
-                            {children}
-                        </RequireRole>
+                        {/* Chỉ kiểm tra role khi session đã load xong */}
+                        {status === 'authenticated' ? (
+                            <RequireRole role="ADMIN">
+                                {children}
+                            </RequireRole>
+                        ) : (
+                            <div style={{
+                                minHeight: '60vh',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center'
+                            }}>
+                                <Spin size="large" />
+                            </div>
+                        )}
                     </AdminContent>
                     <AdminFooter />
                 </div>
