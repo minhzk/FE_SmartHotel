@@ -61,7 +61,7 @@ const ChatManagement: React.FC<ChatManagementProps> = ({ chatSessions }) => {
         { text: 'Đang hoạt động', value: 'active' },
         { text: 'Đã kết thúc', value: 'closed' },
       ],
-      onFilter: (value: string, record: ChatSession) => record.status === value,
+      onFilter: (value: boolean | React.Key, record: ChatSession) => record.status === value,
     },
     {
       title: 'Thời gian bắt đầu',
