@@ -55,9 +55,9 @@ const HotelGallery: React.FC<HotelGalleryProps> = ({ images }) => {
             </div>
           </Col>
           <Col xs={24} md={8}>
-            <Row gutter={[8, 8]}>
+            <div className="thumbnail-list">
               {thumbnailImages.map((image, index) => (
-                <Col span={12} key={index}>
+                <div className="thumbnail-wrapper" key={index}>
                   <div className="thumbnail-container">
                     <Image
                       src={image.url}
@@ -70,10 +70,10 @@ const HotelGallery: React.FC<HotelGalleryProps> = ({ images }) => {
                       }}
                     />
                   </div>
-                </Col>
+                </div>
               ))}
               {hasMoreImages && (
-                <Col span={24}>
+                <div className="thumbnail-wrapper" style={{ width: '100%' }}>
                   <Button 
                     type="default" 
                     block 
@@ -82,20 +82,21 @@ const HotelGallery: React.FC<HotelGalleryProps> = ({ images }) => {
                   >
                     Xem tất cả {images.length} ảnh
                   </Button>
-                </Col>
+                </div>
               )}
-            </Row>
+            </div>
           </Col>
         </Row>
       </div>
       
       {/* Image gallery preview */}
-      <div style={{ display: 'none' }}>
+      {visible && (
         <Image.PreviewGroup
           preview={{
             visible,
             onVisibleChange: (vis) => setVisible(vis),
             current: currentImage,
+            onChange: (idx) => setCurrentImage(idx), // Thêm dòng này để cập nhật currentImage khi chuyển ảnh
             countRender: (current, total) => `${current}/${total}`,
           }}
         >
@@ -103,57 +104,73 @@ const HotelGallery: React.FC<HotelGalleryProps> = ({ images }) => {
             <Image key={index} src={image.url} alt={image.description || `Ảnh ${index + 1}`} />
           ))}
         </Image.PreviewGroup>
-      </div>
+      )}
 
       <style jsx global>{`
         .hotel-gallery-container {
           margin-bottom: 24px;
           overflow: hidden;
         }
-        
         .main-image-container {
           width: 100%;
-          height: 360px;
+          aspect-ratio: 16/9;
           overflow: hidden;
           border-radius: 8px;
           cursor: pointer;
+          background: #f0f2f5;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
-        
         .main-image {
           width: 100%;
           height: 100%;
           object-fit: cover;
           transition: transform 0.3s ease;
         }
-        
-        .main-image:hover {
+        .main-image-container:hover .main-image {
           transform: scale(1.05);
         }
-        
+        .thumbnail-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          height: 100%;
+          min-height: 360px;
+          align-content: flex-start;
+        }
+        .thumbnail-wrapper {
+          flex: 1 1 48%;
+          min-width: 48%;
+          max-width: 48%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
         .thumbnail-container {
           width: 100%;
-          height: 176px;
+          aspect-ratio: 1/1;
           overflow: hidden;
           border-radius: 8px;
           cursor: pointer;
+          background: #f0f2f5;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
-        
         .thumbnail-image {
           width: 100%;
           height: 100%;
           object-fit: cover;
           transition: transform 0.3s ease;
         }
-        
-        .thumbnail-image:hover {
+        .thumbnail-container:hover .thumbnail-image {
           transform: scale(1.05);
         }
-        
         .view-all-button {
           height: 40px;
           margin-top: 4px;
         }
-        
         .hotel-gallery-placeholder {
           display: flex;
           flex-direction: column;
@@ -163,15 +180,21 @@ const HotelGallery: React.FC<HotelGalleryProps> = ({ images }) => {
           background-color: #f0f2f5;
           border-radius: 8px;
         }
-
         @media (max-width: 768px) {
           .main-image-container {
-            height: 240px;
+            aspect-ratio: 16/10;
             margin-bottom: 8px;
           }
-          
+          .thumbnail-list {
+            min-height: 0;
+            gap: 8px;
+          }
+          .thumbnail-wrapper {
+            min-width: 48%;
+            max-width: 48%;
+          }
           .thumbnail-container {
-            height: 120px;
+            aspect-ratio: 1/1;
           }
         }
       `}</style>
