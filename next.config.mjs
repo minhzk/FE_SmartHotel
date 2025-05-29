@@ -2,21 +2,15 @@
 const nextConfig = {
   // Cần thiết cho Docker deployment
   output: 'standalone',
-  
+
   // Disable ESLint during builds for Railway
   eslint: {
     ignoreDuringBuilds: true,
   },
   
-  // Disable TypeScript errors during builds (optional)
-  typescript: {
-    ignoreBuildErrors: false,
-  },
-  
   // Hỗ trợ app directory (nếu dùng Next.js 13+)
   experimental: {
     appDir: true,
-    outputFileTracingRoot: undefined,
   },
 
   // Cấu hình images cho Cloudinary và external domains
@@ -25,11 +19,6 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: '*.up.railway.app',
         pathname: '/**',
       },
       {
@@ -45,7 +34,7 @@ const nextConfig = {
   // Environment variables (nếu cần)
   env: {
     NEXT_PUBLIC_BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL,
-    NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+    // NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
   },
 
   // Webpack config (nếu cần custom)
@@ -94,15 +83,6 @@ const nextConfig = {
       },
     ];
   },
-
-  // Compiler options for production
-  compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
-  },
-
-  // Performance optimizations
-  poweredByHeader: false,
-  compress: true,
 };
 
 export default nextConfig;
