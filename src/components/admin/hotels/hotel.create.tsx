@@ -279,7 +279,7 @@ const HotelCreate = (props: IProps) => {
                                 min={0}
                                 placeholder="VND"
                                 formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                                parser={(value) => value!.replace(/\$\s?|(,*)/g, '')}
+                                parser={(value) => (parseFloat(value!.replace(/\$\s?|(,*)/g, '')) || 0) as any}
                                 style={{ width: '100%' }}
                             />
                         </Form.Item>
@@ -294,7 +294,7 @@ const HotelCreate = (props: IProps) => {
                                 min={0}
                                 placeholder="VND"
                                 formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                                parser={(value) => value!.replace(/\$\s?|(,*)/g, '')}
+                                parser={(value) => (parseFloat(value!.replace(/\$\s?|(,*)/g, '')) || 0) as any}
                                 style={{ width: '100%' }}
                             />
                         </Form.Item>

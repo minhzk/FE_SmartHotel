@@ -102,3 +102,8 @@ scripts/deploy*
 .next/standalone/
 .next/static/
 .next/cache/
+
+# TypeScript
+*.tsbuildinfo
+.tsbuildinfo
+tsconfig.tsbuildinfo

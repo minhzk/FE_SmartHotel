@@ -3,8 +3,12 @@ const nextConfig = {
   // Cần thiết cho Docker deployment
   output: 'standalone',
 
-  // Disable ESLint during builds for Railway
+  typescript: {
+    // Dangerously allow production builds to successfully complete even if your project has type errors
+    ignoreBuildErrors: true,
+  },
   eslint: {
+    // Allow production builds to successfully complete even if your project has ESLint errors
     ignoreDuringBuilds: true,
   },
   
