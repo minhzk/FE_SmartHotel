@@ -9,6 +9,7 @@ import { IUser } from './types/next-auth';
 import { jwtDecode } from 'jwt-decode';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+    trustHost: true,
     providers: [
         Credentials({
             credentials: {
