@@ -26,8 +26,8 @@ const nextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'http',
-        hostname: process.env.NEXT_PUBLIC_BACKEND_URL?.replace('http://', '') || 'besmarthotel-production.up.railway.app',
+        protocol: 'https',
+        hostname: process.env.NEXT_PUBLIC_BACKEND_URL?.replace('https://', '') || 'besmarthotel-production.up.railway.app',
         pathname: '/**',
       },
     ],
