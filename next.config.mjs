@@ -24,12 +24,7 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
         pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: process.env.NEXT_PUBLIC_BACKEND_URL?.replace('https://', '') || 'besmarthotel-production.up.railway.app',
-        pathname: '/**',
-      },
+      }
     ],
     domains: ['res.cloudinary.com'],
   },
