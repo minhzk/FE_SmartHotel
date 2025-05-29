@@ -16,7 +16,9 @@
                 "NODE_ENV": "production",
                 "NEXT_TELEMETRY_DISABLED": "1",
                 "SKIP_TYPE_CHECK": "1",
-                "CI": "false"
+                "CI": "false",
+                "HOSTNAME": "0.0.0.0",
+                "PORT": "3000"
             }
         }
     }
