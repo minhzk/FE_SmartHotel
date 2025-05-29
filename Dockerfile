@@ -11,10 +11,28 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Build arguments to receive environment variables from Railway
+ARG NODE_ENV
+ARG PORT
+ARG NEXT_PUBLIC_BACKEND_URL
+ARG AUTH_SECRET
+ARG NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+ARG NEXTAUTH_URL
+ARG NEXTAUTH_SECRET
+
 # Set build environment variables
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_TYPE_CHECK=1
 ENV CI=false
+
+# Set application environment variables
+ENV NODE_ENV=$NODE_ENV
+ENV PORT=$PORT
+ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
+ENV AUTH_SECRET=$AUTH_SECRET
+ENV NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=$NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+ENV NEXTAUTH_URL=$NEXTAUTH_URL
+ENV NEXTAUTH_SECRET=$NEXTAUTH_SECRET
 
 # Build application
 RUN npm run build
@@ -49,7 +67,7 @@ USER nextjs
 # Expose port
 EXPOSE 3000
 
-# Set runtime environment
+# Set runtime environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
