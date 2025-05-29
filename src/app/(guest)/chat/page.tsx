@@ -136,7 +136,6 @@ export default function ChatPage() {
               enableRoomQueries={true}
               enableBookingAssistance={true}
               systemContext="Trợ lý tổng quát Smart Hotel - có thể trả lời mọi câu hỏi về danh sách khách sạn, thông tin các khách sạn ở các thành phố, các loại phòng, giá cả, và dịch vụ."
-              ref={chatWidgetRef}
             />
           </div>
         </div>
