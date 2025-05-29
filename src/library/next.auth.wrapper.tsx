@@ -9,7 +9,12 @@ export default function NextAuthWrapper({
     session?: any
 }) {
     return (
-        <SessionProvider session={null}>
+        <SessionProvider 
+            session={null}
+            basePath="/api/auth"
+            refetchInterval={300} // Refresh every 5 minutes
+            refetchOnWindowFocus={true}
+        >
             {children}
         </SessionProvider>
     )
