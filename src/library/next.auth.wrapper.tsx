@@ -10,7 +10,7 @@ export default function NextAuthWrapper({
 }) {
     return (
         <SessionProvider 
-            session={null}
+            session={session}
             basePath="/api/auth"
             refetchInterval={300} // Refresh every 5 minutes
             refetchOnWindowFocus={true}
