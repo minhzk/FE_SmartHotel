@@ -88,12 +88,9 @@ temp/
 .netlify/
 
 # Docker files (Railway sẽ tự build)
-Dockerfile
-.dockerignore
 docker-compose*.yml
 
 # Railway deployment
-railway.json
 .railway/
 
 # Deployment configs
