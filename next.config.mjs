@@ -24,17 +24,15 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
         pathname: '/**',
-      }
+      },
+      {
+        protocol: 'http',
+        hostname: process.env.NEXT_PUBLIC_BACKEND_URL?.replace('http://', '') || 'besmarthotel-production.up.railway.app',
+        pathname: '/**',
+      },
     ],
     domains: ['res.cloudinary.com'],
   },
-
-  // Environment variables (nếu cần)
-  env: {
-    NEXT_PUBLIC_BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL,
-    // NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-  },
-
   // Webpack config (nếu cần custom)
   webpack: (config, { isServer }) => {
     // Fixes for packages that don't work with webpack 5
