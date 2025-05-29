@@ -27,12 +27,11 @@ const nextConfig = {
       },
       {
         protocol: 'http',
-        hostname: 'localhost',
-        port: '8080',
+        hostname: process.env.NEXT_PUBLIC_BACKEND_URL?.replace('http://', '') || 'besmarthotel-production.up.railway.app',
         pathname: '/**',
       },
     ],
-    domains: ['res.cloudinary.com', 'localhost'],
+    domains: ['res.cloudinary.com'],
   },
 
   // Environment variables (nếu cần)
