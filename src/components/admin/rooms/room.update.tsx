@@ -92,7 +92,12 @@ const RoomUpdate = ({ isUpdateModalOpen, setIsUpdateModalOpen, dataUpdate, setDa
     const onFinish = async (values: any) => {
         try {
             setLoading(true);
-            
+
+            // Đảm bảo capacity = max_adults + max_children trước khi gửi
+            const max_adults = Number(values.max_adults || 0);
+            const max_children = Number(values.max_children || 0);
+            const capacity = max_adults + max_children;
+
             // Process images
             const images = fileList.map(file => {
                 const isCloudinaryUrl = file.url?.includes('res.cloudinary.com') || 
@@ -124,9 +129,9 @@ const RoomUpdate = ({ isUpdateModalOpen, setIsUpdateModalOpen, dataUpdate, setDa
                 room_type: values.room_type,
                 description: values.description,
                 price_per_night: Number(values.price_per_night || 0),
-                capacity: Number(values.capacity || 2),
-                max_adults: Number(values.max_adults || 2),
-                max_children: Number(values.max_children || 0),
+                capacity, // set capacity đúng tổng
+                max_adults,
+                max_children,
                 size: Number(values.size || 0),
                 number_of_rooms: Number(values.number_of_rooms || 1),
                 is_bookable: values.is_bookable,
