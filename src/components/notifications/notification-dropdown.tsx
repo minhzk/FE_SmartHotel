@@ -45,6 +45,8 @@ const NotificationDropdown = () => {
         return <Tag color="red">Hủy</Tag>;
       case 'booking_expired':
         return <Tag color="volcano">Hết hạn</Tag>;
+      case 'review_reminder':
+        return <Tag color="lime">Nhắc đánh giá</Tag>;
       case 'payment_received':
         return <Tag color="purple">Thanh toán</Tag>;
       case 'payment_refunded':
