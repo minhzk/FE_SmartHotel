@@ -183,8 +183,7 @@ const HotelListing = ({ session }: IHotelListingProps) => {
     if (checkOut) queryParams.check_out = checkOut;
     
     if (sortBy) {
-      const [field, order] = sortBy.split('_');
-      queryParams.sort = order === 'asc' ? field : `-${field}`;
+      queryParams.sortBy = sortBy
     }
     
     try {
