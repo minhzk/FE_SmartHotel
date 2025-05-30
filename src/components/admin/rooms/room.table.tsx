@@ -372,6 +372,12 @@ const RoomTable = ({ rooms = [], meta = { current: 1, pageSize: 10, pages: 0, to
         },
     ];
 
+    // Gọi lại fetchRooms khi chuyển trang hoặc đổi pageSize
+    useEffect(() => {
+        fetchRooms();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pagination.current, pagination.pageSize]);
+
     return (
         <Card
             title="Quản lý phòng"

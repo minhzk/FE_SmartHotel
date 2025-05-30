@@ -9,7 +9,7 @@ interface IProps {
 
 const ManageRoomsPage = async (props: IProps) => {
     const current = props?.searchParams?.current ?? 1;
-    const pageSize = props?.searchParams?.pageSize ?? 10;
+    const pageSize = props?.searchParams?.pageSize ?? 5;
     const session = await auth();
 
     const res = await sendRequest<IBackendRes<any>>({
