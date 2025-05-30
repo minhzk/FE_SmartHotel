@@ -249,9 +249,12 @@ const HotelUpdate = (props: IProps) => {
                         <Form.Item
                             label="Tên khách sạn"
                             name="name"
-                            rules={[{ required: true, message: 'Vui lòng nhập tên khách sạn!' }]}
+                            rules={[
+                                { required: true, message: 'Vui lòng nhập tên khách sạn!' },
+                                { max: 100, message: 'Tên khách sạn tối đa 100 ký tự!' }
+                            ]}
                         >
-                            <Input placeholder="Tên khách sạn" />
+                            <Input placeholder="Tên khách sạn" maxLength={100} />
                         </Form.Item>
                     </Col>
                     <Col span={12}>
@@ -277,17 +280,23 @@ const HotelUpdate = (props: IProps) => {
                 <Form.Item
                     label="Địa chỉ"
                     name="address"
-                    rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}
+                    rules={[
+                        { required: true, message: 'Vui lòng nhập địa chỉ!' },
+                        { max: 200, message: 'Địa chỉ tối đa 200 ký tự!' }
+                    ]}
                 >
-                    <Input placeholder="Địa chỉ khách sạn" />
+                    <Input placeholder="Địa chỉ khách sạn" maxLength={200} />
                 </Form.Item>
 
                 <Form.Item
                     label="Mô tả"
                     name="description"
-                    rules={[{ required: true, message: 'Vui lòng nhập mô tả!' }]}
+                    rules={[
+                        { required: true, message: 'Vui lòng nhập mô tả!' },
+                        { max: 1000, message: 'Mô tả tối đa 1000 ký tự!' }
+                    ]}
                 >
-                    <Input.TextArea rows={4} placeholder="Mô tả về khách sạn" />
+                    <Input.TextArea rows={4} placeholder="Mô tả về khách sạn" maxLength={1000} />
                 </Form.Item>
 
                 <Row gutter={[16, 0]}>

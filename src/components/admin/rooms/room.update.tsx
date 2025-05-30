@@ -314,9 +314,12 @@ const RoomUpdate = ({ isUpdateModalOpen, setIsUpdateModalOpen, dataUpdate, setDa
                         <Form.Item
                             label="Tên phòng"
                             name="name"
-                            rules={[{ required: true, message: 'Vui lòng nhập tên phòng!' }]}
+                            rules={[
+                                { required: true, message: 'Vui lòng nhập tên phòng!' },
+                                { max: 100, message: 'Tên phòng tối đa 100 ký tự!' }
+                            ]}
                         >
-                            <Input placeholder="Tên phòng" />
+                            <Input placeholder="Tên phòng" maxLength={100} />
                         </Form.Item>
                     </Col>
                     <Col span={12}>
@@ -441,9 +444,12 @@ const RoomUpdate = ({ isUpdateModalOpen, setIsUpdateModalOpen, dataUpdate, setDa
                 <Form.Item
                     label="Mô tả"
                     name="description"
-                    rules={[{ required: true, message: 'Vui lòng nhập mô tả!' }]}
+                    rules={[
+                        { required: true, message: 'Vui lòng nhập mô tả!' },
+                        { max: 1000, message: 'Mô tả tối đa 1000 ký tự!' }
+                    ]}
                 >
-                    <Input.TextArea rows={4} placeholder="Mô tả về phòng" />
+                    <Input.TextArea rows={4} placeholder="Mô tả về phòng" maxLength={1000} />
                 </Form.Item>
 
                 <Row gutter={[16, 0]}>
