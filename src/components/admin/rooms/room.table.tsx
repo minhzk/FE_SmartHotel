@@ -1,6 +1,6 @@
 'use client'
 
-import { Table, Button, Space, Tag, Popconfirm, message, Card, Input, Select, Tooltip, Image } from "antd";
+import { Table, Button, Space, Tag, Popconfirm, message, Card, Input, Select, Tooltip, Image, Row, Col } from "antd";
 import { PlusOutlined, SearchOutlined, EditOutlined, DeleteOutlined, PictureOutlined, CalendarOutlined } from '@ant-design/icons';
 import { useEffect, useState, useRef } from "react";
 import type { FilterDropdownProps, ColumnsType } from 'antd/es/table/interface';
@@ -12,6 +12,7 @@ import RoomAvailability from "./room.availability";
 import { sendRequest } from "@/utils/api";
 import { handleDeleteRoomAction } from "@/utils/actions";
 import { useSession } from "next-auth/react";
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 interface IRoomTableProps {
     rooms?: IRoom[];
@@ -65,10 +66,20 @@ const RoomTable = ({ rooms = [], meta = { current: 1, pageSize: 10, pages: 0, to
     });
     const [hotels, setHotels] = useState<any[]>([]);
     const searchInput = useRef<InputRef>(null);
+    const searchParams = useSearchParams();
+    const pathname = usePathname();
+    const { replace } = useRouter();
     const { data: session } = useSession();
 
     const [isAvailabilityModalOpen, setIsAvailabilityModalOpen] = useState<boolean>(false);
     const [selectedRoomForAvailability, setSelectedRoomForAvailability] = useState<IRoom | null>(null);
+
+    // Filter state
+    const [filterHotel, setFilterHotel] = useState<string>(searchParams.get('hotel_id') || '');
+    const [filterRoomType, setFilterRoomType] = useState<string>(searchParams.get('room_type') || '');
+    const [filterActive, setFilterActive] = useState<string>(searchParams.get('is_active') || '');
+    const [filterBookable, setFilterBookable] = useState<string>(searchParams.get('is_bookable') || '');
+    const [filterSearch, setFilterSearch] = useState<string>(searchParams.get('search') || '');
 
     useEffect(() => {
         setDataSource(rooms);
@@ -98,21 +109,31 @@ const RoomTable = ({ rooms = [], meta = { current: 1, pageSize: 10, pages: 0, to
         fetchHotels();
     }, []);
 
+    // Fetch rooms when searchParams or session changes
+    useEffect(() => {
+        fetchRooms();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams, session]);
+
     const fetchRooms = async () => {
         try {
             setLoading(true);
+            const queryParams: any = {};
+            if (searchParams.has('current')) queryParams.current = searchParams.get('current');
+            if (searchParams.has('pageSize')) queryParams.pageSize = searchParams.get('pageSize');
+            if (searchParams.has('hotel_id')) queryParams.hotel_id = searchParams.get('hotel_id');
+            if (searchParams.has('room_type')) queryParams.room_type = searchParams.get('room_type');
+            if (searchParams.has('is_active')) queryParams.is_active = searchParams.get('is_active');
+            if (searchParams.has('is_bookable')) queryParams.is_bookable = searchParams.get('is_bookable');
+            if (searchParams.has('search')) queryParams.search = searchParams.get('search');
             const res = await sendRequest<IBackendRes<any>>({
                 url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/rooms`,
                 method: 'GET',
-                queryParams: { 
-                    current: pagination.current, 
-                    pageSize: pagination.pageSize 
-                },
-                headers: {
-                    'Authorization': `Bearer ${session?.user?.access_token}`
-                }
+                queryParams,
+                headers: session?.user?.access_token
+                    ? { Authorization: `Bearer ${session.user.access_token}` }
+                    : undefined,
             });
-            
             if (res?.data) {
                 setDataSource(res.data.results || []);
                 setPagination({
@@ -126,6 +147,18 @@ const RoomTable = ({ rooms = [], meta = { current: 1, pageSize: 10, pages: 0, to
         } finally {
             setLoading(false);
         }
+    };
+
+    // Handler for filter
+    const handleFilter = () => {
+        const params = new URLSearchParams(searchParams);
+        if (filterHotel) params.set('hotel_id', filterHotel); else params.delete('hotel_id');
+        if (filterRoomType) params.set('room_type', filterRoomType); else params.delete('room_type');
+        if (filterActive) params.set('is_active', filterActive); else params.delete('is_active');
+        if (filterBookable) params.set('is_bookable', filterBookable); else params.delete('is_bookable');
+        if (filterSearch) params.set('search', filterSearch); else params.delete('search');
+        params.set('current', '1');
+        replace(`${pathname}?${params.toString()}`);
     };
 
     const handleUpdate = (record: IRoom) => {
@@ -272,8 +305,15 @@ const RoomTable = ({ rooms = [], meta = { current: 1, pageSize: 10, pages: 0, to
                 { text: 'Standard', value: 'standard' },
                 { text: 'Deluxe', value: 'deluxe' },
                 { text: 'Suite', value: 'suite' },
+                { text: 'Executive', value: 'executive' },
                 { text: 'Family', value: 'family' },
-                { text: 'Executive', value: 'executive' }
+                { text: 'Villa', value: 'villa' },
+                { text: 'Bungalow', value: 'bungalow' },
+                { text: 'Studio', value: 'studio' },
+                { text: 'Connecting', value: 'connecting' },
+                { text: 'Accessible', value: 'accessible' },
+                { text: 'Penthouse', value: 'penthouse' },
+                { text: 'Presidential', value: 'presidential' }
             ],
             onFilter: (value: any, record: IRoom) => record.room_type === value,
         },
@@ -391,6 +431,82 @@ const RoomTable = ({ rooms = [], meta = { current: 1, pageSize: 10, pages: 0, to
                 </Button>
             }
         >
+            {/* Bộ lọc phòng */}
+            <Row gutter={[12, 8]} style={{ marginBottom: 16 }}>
+                <Col xs={24} sm={12} md={6}>
+                    <Select
+                        placeholder="Khách sạn"
+                        value={filterHotel || undefined}
+                        onChange={v => setFilterHotel(v)}
+                        allowClear
+                        style={{ width: '100%' }}
+                        options={hotels.map(h => ({ value: h._id, label: h.name }))}
+                    />
+                </Col>
+                <Col xs={24} sm={12} md={6}>
+                    <Select
+                        placeholder="Loại phòng"
+                        value={filterRoomType || undefined}
+                        onChange={v => setFilterRoomType(v)}
+                        allowClear
+                        style={{ width: '100%' }}
+                        options={[
+                            { value: 'Standard', label: 'Standard' },
+                            { value: 'Deluxe', label: 'Deluxe' },
+                            { value: 'Suite', label: 'Suite' },
+                            { value: 'Executive', label: 'Executive' },
+                            { value: 'Family', label: 'Family' },
+                            { value: 'Villa', label: 'Villa' },
+                            { value: 'Bungalow', label: 'Bungalow' },
+                            { value: 'Studio', label: 'Studio' },
+                            { value: 'Connecting', label: 'Connecting' },
+                            { value: 'Accessible', label: 'Accessible' },
+                            { value: 'Penthouse', label: 'Penthouse' },
+                            { value: 'Presidential', label: 'Presidential' }
+                        ]}
+                    />
+                </Col>
+                <Col xs={24} sm={12} md={6}>
+                    <Select
+                        placeholder="Hoạt động"
+                        value={filterActive || undefined}
+                        onChange={v => setFilterActive(v)}
+                        allowClear
+                        style={{ width: '100%' }}
+                        options={[
+                            { value: 'true', label: 'Hoạt động' },
+                            { value: 'false', label: 'Không hoạt động' }
+                        ]}
+                    />
+                </Col>
+                <Col xs={24} sm={12} md={6}>
+                    <Select
+                        placeholder="Có thể đặt"
+                        value={filterBookable || undefined}
+                        onChange={v => setFilterBookable(v)}
+                        allowClear
+                        style={{ width: '100%' }}
+                        options={[
+                            { value: 'true', label: 'Có thể đặt' },
+                            { value: 'false', label: 'Ngừng đặt' }
+                        ]}
+                    />
+                </Col>
+                <Col xs={24} sm={12} md={6}>
+                    <Input
+                        placeholder="Tìm kiếm tên phòng"
+                        value={filterSearch}
+                        onChange={e => setFilterSearch(e.target.value)}
+                        allowClear
+                        style={{ width: '100%' }}
+                    />
+                </Col>
+                <Col xs={24} sm={12} md={6}>
+                    <Button icon={<SearchOutlined />} type="primary" onClick={handleFilter} block>
+                        Lọc
+                    </Button>
+                </Col>
+            </Row>
             <Table
                 columns={columns}
                 dataSource={dataSource}
