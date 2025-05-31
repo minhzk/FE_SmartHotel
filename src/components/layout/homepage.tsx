@@ -2,7 +2,7 @@
 
 import { SearchOutlined, HomeOutlined, BankOutlined, GlobalOutlined, UserOutlined, PlusOutlined, MinusOutlined } from "@ant-design/icons"
 import { Tabs, Input, DatePicker, Button, Card, Row, Col, Typography, Dropdown, Space, Carousel, Image, Popover } from "antd"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import dayjs from 'dayjs'
 import type { TabsProps } from 'antd';
 import { useRouter } from 'next/navigation';
@@ -18,6 +18,7 @@ const HomePage = () => {
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
     const [destination, setDestination] = useState('');
     const [dateRange, setDateRange] = useState<any>(null);
+    const [cityHotelCounts, setCityHotelCounts] = useState<Record<string, number>>({});
 
     const onChange = (key: string) => {
         console.log(key);
@@ -141,48 +142,65 @@ const HomePage = () => {
         </div>
     );
 
+    useEffect(() => {
+        // Gọi API lấy số lượng khách sạn theo từng thành phố
+        const fetchHotelCounts = async () => {
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/hotels?groupBy=city`);
+                const data = await res.json();
+                // Giả sử BE trả về dạng: { cityCounts: { 'ha noi': 123, ... } }
+                if (data?.data?.cityCounts) {
+                    setCityHotelCounts(data.data.cityCounts);
+                }
+            } catch (err) {
+                // fallback không set gì
+            }
+        };
+        fetchHotelCounts();
+    }, []);
+
     // Danh sách các điểm đến phổ biến
     const destinations = [
         {
             id: 1,
             name: 'Hà Nội',
             image: 'https://vcdn1-dulich.vnecdn.net/2022/05/12/Hanoi2-1652338755-3632-1652338809.jpg?w=0&h=0&q=100&dpr=2&fit=crop&s=NxMN93PTvOTnHNryMx3xJw',
-            hotels: 458,
+            hotels: cityHotelCounts['ha noi'] ?? 0,
             slug: 'ha noi'
         },
         {
             id: 2,
             name: 'Hồ Chí Minh',
             image: 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?q=80&w=1000',
-            hotels: 672,
+            hotels: cityHotelCounts['ho chi minh'] ?? 0,
             slug: 'ho chi minh'
         },
         {
             id: 3,
             name: 'Đà Nẵng',
             image: 'https://vcdn1-dulich.vnecdn.net/2022/06/03/cau-vang-jpeg-mobile-4171-1654247848.jpg?w=0&h=0&q=100&dpr=1&fit=crop&s=xrjEn1shZLiHomFix1sHNQ',
-            hotels: 325,
+            hotels: cityHotelCounts['da nang'] ?? 0,
             slug: 'da nang'
         },
         {
             id: 4,
             name: 'Nha Trang',
             image: 'https://vcdn1-dulich.vnecdn.net/2022/05/09/shutterstock-280926449-6744-15-3483-9174-1652070682.jpg?w=0&h=0&q=100&dpr=1&fit=crop&s=bGCo6Rv6DseMDE_07TT1Aw',
-            hotels: 286,
+            hotels: cityHotelCounts['nha trang'] ?? 0,
             slug: 'nha trang'
         },
         {
             id: 5, 
             name: 'Đà Lạt',
             image: 'https://samtenhills.vn/wp-content/uploads/2024/01/kham-pha-4-khu-du-lich-tam-linh-da-lat-noi-tieng-bat-nhat.jpg',
-            hotels: 198,
+            hotels: cityHotelCounts['da lat'] ?? 0,
             slug: 'da lat'
         },
         {
             id: 6,
             name: 'Phú Quốc',
             image: 'https://images.unsplash.com/photo-1590001155093-a3c66ab0c3ff?q=80&w=1000',
-            hotels: 145,
+            hotels: cityHotelCounts['phu quoc'] ?? 0,
             slug: 'phu quoc'
         }
     ];
