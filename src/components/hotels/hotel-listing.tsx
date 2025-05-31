@@ -299,6 +299,9 @@ const HotelListing = ({ session }: IHotelListingProps) => {
                 <Option value="nha trang">Nha Trang</Option>
                 <Option value="da lat">Đà Lạt</Option>
                 <Option value="phu quoc">Phú Quốc</Option>
+                <Option value="hue">Huế</Option>
+                <Option value="quy nhon">Quy Nhơn</Option>
+                <Option value="vung tau">Vũng Tàu</Option>
               </Select>
             </div>
             

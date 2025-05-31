@@ -229,6 +229,9 @@ const HotelCreate = (props: IProps) => {
                                 <Select.Option value="nha trang">Nha Trang</Select.Option>
                                 <Select.Option value="da lat">Đà Lạt</Select.Option>
                                 <Select.Option value="phu quoc">Phú Quốc</Select.Option>
+                                <Select.Option value="hue">Huế</Select.Option>
+                                <Select.Option value="quy nhon">Quy Nhơn</Select.Option>
+                                <Select.Option value="vung tau">Vũng Tàu</Select.Option>
                             </Select>
                         </Form.Item>
                     </Col>
