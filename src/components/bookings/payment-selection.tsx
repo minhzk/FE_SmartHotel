@@ -5,6 +5,7 @@ import { Radio, Card, Typography, Divider, Button, Space, Alert, Row, Col, Skele
 import { CheckCircleFilled, CreditCardOutlined, WalletOutlined } from '@ant-design/icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { sendRequest } from '@/utils/api';
+import dayjs from 'dayjs';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -143,6 +144,15 @@ const PaymentSelection: React.FC<PaymentSelectionProps> = ({
     }
   };
 
+  // Tính số đêm dựa trên ngày check-in và check-out (có giờ)
+  const getNights = () => {
+    if (!bookingData?.check_in_date || !bookingData?.check_out_date) return 1;
+    const checkIn = dayjs(bookingData.check_in_date).startOf('day');
+    const checkOut = dayjs(bookingData.check_out_date).startOf('day');
+    const nights = checkOut.diff(checkIn, 'day');
+    return nights > 0 ? nights : 1;
+  };
+
   if (!bookingData || !hotelInfo || !roomInfo) {
     return <Skeleton active />;
   }
@@ -180,7 +190,7 @@ const PaymentSelection: React.FC<PaymentSelectionProps> = ({
                 <Col span={24} md={12}>
                   <div className="info-item">
                     <Text strong>Số đêm:</Text>
-                    <Text>{bookingData.nights || '1'}</Text>
+                    <Text>{getNights()}</Text>
                   </div>
                   <div className="info-item">
                     <Text strong>Số khách:</Text>
