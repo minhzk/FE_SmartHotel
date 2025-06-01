@@ -55,8 +55,12 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
 
   // Tự động cuộn xuống cuối cuộc trò chuyện khi có tin nhắn mới
   useEffect(() => {
-    if (isOpen || displayInline) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if ((isOpen || displayInline) && messagesEndRef.current) {
+      // Chỉ cuộn trong box chat, không cuộn cả trang
+      messagesEndRef.current.parentElement?.scrollTo({
+        top: messagesEndRef.current.parentElement.scrollHeight,
+        behavior: 'smooth',
+      });
     }
   }, [messages, isOpen, displayInline]);
 
