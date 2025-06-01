@@ -55,6 +55,7 @@ RUN npm ci --only=production
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/src ./src
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
