@@ -1,19 +1,23 @@
-import { AuthError } from "next-auth";
+import { AuthError } from 'next-auth';
 
 export class CustomAuthError extends AuthError {
-  static type: string;
+    constructor(message?: any) {
+        super();
 
-  constructor(message?: any) {
-    super();
-
-    this.type = message;
-  }
+        this.name = message;
+    }
 }
 
 export class InvalidEmailPasswordError extends AuthError {
-    static type = "Email/Password is invalid";
+    constructor() {
+        super('Email/Password is invalid');
+        this.name = 'InvalidEmailPasswordError';
+    }
 }
 
 export class InactiveAccountError extends AuthError {
-    static type = "Account is inactive";
+    constructor() {
+        super('Account is inactive');
+        this.name = 'InactiveAccountError';
+    }
 }

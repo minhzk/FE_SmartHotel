@@ -26,11 +26,16 @@ const Login = () => {
                 setUserEmail(username)
                 return
             }
+            // Map code lỗi sang thông báo tiếng Việt
+            const errorMessages: Record<number, string> = {
+                1: "Email hoặc mật khẩu không đúng.",
+                2: "Tài khoản của bạn chưa được kích hoạt.",
+                0: "Có lỗi xảy ra. Vui lòng thử lại.",
+            };
             notification.error({
-                message: "Error Login",
-                description: res?.error
+                message: "Đăng nhập thất bại",
+                description: errorMessages[res.code] || res.error
             })
-            
         } else {
             // redirect to dashboard
             router.push('/')
