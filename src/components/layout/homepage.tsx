@@ -350,7 +350,14 @@ const HomePage = () => {
                         <Col xs={24} sm={12} md={8} key={destination.id}>
                             <Card 
                                 hoverable
-                                cover={<Image alt={destination.name} src={destination.image} style={{ height: '200px', objectFit: 'cover' }} />}
+                                cover={
+                                    <Image 
+                                        alt={destination.name} 
+                                        src={destination.image} 
+                                        style={{ height: '200px', objectFit: 'cover', pointerEvents: 'none' }} 
+                                        preview={false}
+                                    />
+                                }
                                 style={{ marginBottom: '16px' }}
                                 onClick={() => handleDestinationClick(destination.slug)}
                             >
