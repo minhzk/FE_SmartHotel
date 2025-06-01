@@ -115,7 +115,6 @@ const HotelListing = ({ session }: IHotelListingProps) => {
     if (!text) return '';
     
     return text.trim()
-      .replace(/[^a-zA-Z0-9\s\u00C0-\u024F]/g, '') // Replace non-alphanumeric and non-space characters, including accented letters
       .replace(/\s+/g, ' ');
   };
 
