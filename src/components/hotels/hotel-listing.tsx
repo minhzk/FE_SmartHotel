@@ -34,6 +34,9 @@ const HotelListing = ({ session }: IHotelListingProps) => {
   const [rating, setRating] = useState<number | null>(
     searchParams?.get('rating') ? Number(searchParams.get('rating')) : null
   );
+  const [sentimentScore, setSentimentScore] = useState<number | null>(
+    searchParams?.get('sentiment_score') ? Number(searchParams.get('sentiment_score')) : null
+  );
   const [minPrice, setMinPrice] = useState<number | null>(
     searchParams?.get('min_price') ? Number(searchParams.get('min_price')) : null
   );
@@ -134,16 +137,17 @@ const HotelListing = ({ session }: IHotelListingProps) => {
     if (checkIn) params.check_in = checkIn;
     if (checkOut) params.check_out = checkOut;
     if (sortBy) params.sortBy = sortBy;
+    if (sentimentScore) params.sentiment_score = sentimentScore;
     params.current = current;
     
     const queryStr = queryString.stringify(params);
     router.push(`/hotels?${queryStr}`);
-  }, [search, name, city, rating, minPrice, maxPrice, capacity, adults, children, checkIn, checkOut, sortBy, current]);
+  }, [search, name, city, rating, minPrice, maxPrice, capacity, adults, children, checkIn, checkOut, sortBy, current, sentimentScore]);
 
   // Load data khi component mount và khi các filter thay đổi
   useEffect(() => {
     fetchHotels();
-  }, [current, sortBy, city, rating, minPrice, maxPrice, capacity, search, name, adults, children, checkIn, checkOut]);
+  }, [current, sortBy, city, rating, minPrice, maxPrice, capacity, search, name, adults, children, checkIn, checkOut, sentimentScore]);
   
   // Xử lý thay đổi range ngày
   const handleDateChange = (dates: any) => {
@@ -173,6 +177,7 @@ const HotelListing = ({ session }: IHotelListingProps) => {
     if (name) queryParams.name = normalizeSearchText(name);
     if (city) queryParams.city = city;
     if (rating) queryParams.rating = rating;
+    if (sentimentScore) queryParams.sentiment_score = sentimentScore;
     if (minPrice) queryParams.min_price = minPrice;
     if (maxPrice) queryParams.max_price = maxPrice;
     if (capacity) queryParams.capacity = capacity;
@@ -180,10 +185,7 @@ const HotelListing = ({ session }: IHotelListingProps) => {
     if (children) queryParams.children = children;
     if (checkIn) queryParams.check_in = checkIn;
     if (checkOut) queryParams.check_out = checkOut;
-    
-    if (sortBy) {
-      queryParams.sortBy = sortBy
-    }
+    if (sortBy) queryParams.sortBy = sortBy;
     
     try {
       const res = await sendRequest<IBackendRes<IModelPaginate<any>>>({
@@ -330,6 +332,28 @@ const HotelListing = ({ session }: IHotelListingProps) => {
                   <Rate disabled defaultValue={1} />
                 </div>
               </div>
+            </div>
+            
+            <div className="filter-section">
+              <Title level={5}>Cảm xúc</Title>
+              <Select
+                placeholder="Chọn mức độ cảm xúc"
+                style={{ width: '100%' }}
+                value={sentimentScore || undefined}
+                onChange={(value) => setSentimentScore(value)}
+                allowClear
+              >
+                <Option value={10}>Hoàn hảo (10)</Option>
+                <Option value={9}>Tuyệt vời (9+)</Option>
+                <Option value={8}>Xuất sắc (8+)</Option>
+                <Option value={7}>Rất tốt (7+)</Option>
+                <Option value={6}>Hài lòng (6+)</Option>
+                <Option value={5}>Trung bình (5+)</Option>
+                <Option value={4}>Tệ (4+)</Option>
+                <Option value={3}>Rất tệ (3+)</Option>
+                <Option value={2}>Kém (2+)</Option>
+                <Option value={1}>Rất kém (1+)</Option>
+              </Select>
             </div>
             
             <Divider />

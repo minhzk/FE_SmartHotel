@@ -1,7 +1,7 @@
 'use client'
 import { handleDeleteHotelAction } from "@/utils/actions";
 import { DeleteTwoTone, EditTwoTone, EyeTwoTone, SearchOutlined } from "@ant-design/icons";
-import { Button, Popconfirm, Table, Tag, Image, Input, Select, Row, Col } from "antd";
+import { Button, Popconfirm, Table, Tag, Image, Input, Select, Row, Col, Card } from "antd";
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
@@ -41,6 +41,7 @@ const HotelTable = (props: IProps) => {
     const [filterCity, setFilterCity] = useState<string>(searchParams.get('city') || '');
     const [filterStatus, setFilterStatus] = useState<string>(searchParams.get('is_active') || '');
     const [filterRating, setFilterRating] = useState<string>(searchParams.get('rating') || '');
+    const [filterSentimentScore, setFilterSentimentScore] = useState<string>(searchParams.get('sentiment_score') || '');
     const [filterMinPrice, setFilterMinPrice] = useState<string>(searchParams.get('min_price') || '');
     const [filterMaxPrice, setFilterMaxPrice] = useState<string>(searchParams.get('max_price') || '');
     const [filterCapacity, setFilterCapacity] = useState<string>(searchParams.get('capacity') || '');
@@ -68,6 +69,7 @@ const HotelTable = (props: IProps) => {
             if (searchParams.has('city')) queryParams.city = searchParams.get('city');
             if (searchParams.has('is_active')) queryParams.is_active = searchParams.get('is_active');
             if (searchParams.has('rating')) queryParams.rating = searchParams.get('rating');
+            if (searchParams.has('sentiment_score')) queryParams.sentiment_score = searchParams.get('sentiment_score');
             if (searchParams.has('min_price')) queryParams.min_price = searchParams.get('min_price');
             if (searchParams.has('max_price')) queryParams.max_price = searchParams.get('max_price');
             if (searchParams.has('capacity')) queryParams.capacity = searchParams.get('capacity');
@@ -102,6 +104,7 @@ const HotelTable = (props: IProps) => {
         if (filterCity) params.set('city', filterCity); else params.delete('city');
         if (filterStatus) params.set('is_active', filterStatus); else params.delete('is_active');
         if (filterRating) params.set('rating', filterRating); else params.delete('rating');
+        if (filterSentimentScore) params.set('sentiment_score', filterSentimentScore); else params.delete('sentiment_score');
         if (filterMinPrice) params.set('min_price', filterMinPrice); else params.delete('min_price');
         if (filterMaxPrice) params.set('max_price', filterMaxPrice); else params.delete('max_price');
         if (filterCapacity) params.set('capacity', filterCapacity); else params.delete('capacity');
@@ -334,11 +337,32 @@ const HotelTable = (props: IProps) => {
                         />
                     </Col>
                     <Col xs={24} sm={12} md={6} lg={4}>
-                        <Button icon={<SearchOutlined />} type="primary" onClick={handleFilter} block>
-                            Lọc
-                        </Button>
+                        <Select
+                            placeholder="Lọc theo cảm xúc"
+                            value={filterSentimentScore || undefined}
+                            onChange={setFilterSentimentScore}
+                            allowClear
+                            style={{ width: '100%' }}
+                        >
+                            <Select.Option value="10">Hoàn hảo (10)</Select.Option>
+                            <Select.Option value="9">Tuyệt vời (9+)</Select.Option>
+                            <Select.Option value="8">Xuất sắc (8+)</Select.Option>
+                            <Select.Option value="7">Rất tốt (7+)</Select.Option>
+                            <Select.Option value="6">Hài lòng (6+)</Select.Option>
+                            <Select.Option value="5">Trung bình (5+)</Select.Option>
+                            <Select.Option value="4">Tệ (4+)</Select.Option>
+                            <Select.Option value="3">Rất tệ (3+)</Select.Option>
+                            <Select.Option value="2">Kém (2+)</Select.Option>
+                            <Select.Option value="1">Rất kém (1+)</Select.Option>
+                        </Select>
                     </Col>
                 </Row>
+                <Row gutter={[12, 8]} style={{ marginTop: 8 }}>
+                    <Button icon={<SearchOutlined />} type="primary" onClick={handleFilter} block>
+                        Lọc
+                    </Button>
+                </Row>
+                
             </div>
 
             <Table
