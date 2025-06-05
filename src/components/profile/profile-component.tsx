@@ -30,6 +30,7 @@ const ProfileComponent = ({ session }: IProfileComponentProps) => {
       });
       
       if (response?.data) {
+        console.log('User profile fetched:', response.data);
         setUserProfile(response.data);
       } else {
         // Fallback to session data

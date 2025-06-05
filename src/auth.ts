@@ -1,5 +1,6 @@
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
+import GoogleProvider from 'next-auth/providers/google';
 import {
     InactiveAccountError,
     InvalidEmailPasswordError,
@@ -10,7 +11,12 @@ import { jwtDecode } from 'jwt-decode';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     trustHost: true,
+    debug: process.env.NODE_ENV === 'development', // Enable debug logging
     providers: [
+        GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+        }),
         Credentials({
             credentials: {
                 username: {},
@@ -55,8 +61,49 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     ],
     pages: {
         signIn: '/auth/login',
+        error: '/auth/error', // Add custom error page
     },
     callbacks: {
+        async signIn({ user, account, profile }) {
+            if (account?.provider === 'google') {
+                try {
+                    console.log('Google sign-in attempt:', { user, profile });
+
+                    // Send user data to your backend
+                    const res = await sendRequest<IBackendRes<any>>({
+                        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/google/signin`,
+                        method: 'POST',
+                        body: {
+                            email: profile?.email || user.email,
+                            name: profile?.name || user.name,
+                            firstName: profile?.given_name,
+                            lastName: profile?.family_name,
+                            image: profile?.picture || user.image,
+                            googleId: profile?.sub || user.id, // Use profile.sub if available
+                        },
+                    });
+
+                    console.log('Backend response:', res);
+
+                    if (res?.data && res.statusCode === 201) {
+                        // Store backend tokens
+                        user.access_token = res.data.access_token;
+                        user.refresh_token = res.data.refresh_token;
+                        user.role = res.data.user.role;
+                        user._id = res.data.user._id;
+                        return true;
+                    } else {
+                        console.error('Backend sign-in failed:', res);
+                        return false;
+                    }
+                } catch (error) {
+                    console.error('Google sign-in error:', error);
+                    return false;
+                }
+            }
+            return true;
+        },
+
         async jwt({ token, user, trigger, session }) {
             if (user) {
                 // Thêm các thông tin cần thiết vào token khi đăng nhập

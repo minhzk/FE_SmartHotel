@@ -381,3 +381,8 @@ export const createPaymentAction = async (data: {
 
     return res.json();
 };
+
+export const handleGoogleLogin = () => {
+    const googleAuthUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/google`;
+    window.location.href = googleAuthUrl;
+};

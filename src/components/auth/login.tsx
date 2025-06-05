@@ -1,12 +1,13 @@
 'use client';
 import { Button, Col, Divider, Form, Input, notification, Row } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, GoogleOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import { authenticate } from '@/utils/actions';
 import { useRouter } from 'next/navigation';
 import ModalReactive from './modal.reactive';
 import { useState } from 'react';
 import ModalChangePassword from './modal.change.password';
+import { signIn } from 'next-auth/react';
 
 const Login = () => {
     const router = useRouter()
@@ -41,6 +42,21 @@ const Login = () => {
             router.push('/')
         }
     };
+
+    const handleGoogleLogin = async () => {
+        try {
+            await signIn('google', { 
+                callbackUrl: '/',
+                redirect: true 
+            });
+        } catch (error) {
+            notification.error({
+                message: "Đăng nhập Google thất bại",
+                description: "Có lỗi xảy ra khi đăng nhập bằng Google"
+            });
+        }
+    };
+
     return (
         <>
             <Row justify={'center'} style={{ marginTop: '30px' }}>
@@ -97,6 +113,22 @@ const Login = () => {
                                 </div>
                             </Form.Item>
                         </Form>
+
+                        <Divider>Hoặc</Divider>
+                        
+                        <Button
+                            icon={<GoogleOutlined />}
+                            onClick={handleGoogleLogin}
+                            style={{
+                                width: '100%',
+                                marginBottom: '16px',
+                                borderColor: '#db4437',
+                                color: '#db4437'
+                            }}
+                        >
+                            Đăng nhập bằng Google
+                        </Button>
+
                         <Link href={'/'}>
                             <ArrowLeftOutlined /> Return to home page
                         </Link>

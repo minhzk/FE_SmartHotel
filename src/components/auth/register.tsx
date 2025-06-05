@@ -1,10 +1,11 @@
 'use client';
 import React from 'react';
 import { Button, Col, Divider, Form, Input, notification, Row } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, GoogleOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import { sendRequest } from '@/utils/api';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 
 const Register = () => {
     const router = useRouter()
@@ -27,6 +28,21 @@ const Register = () => {
             })
         }
     };
+
+    const handleGoogleRegister = async () => {
+        try {
+            await signIn('google', { 
+                callbackUrl: '/',
+                redirect: true 
+            });
+        } catch (error) {
+            notification.error({
+                message: "Đăng ký Google thất bại",
+                description: "Có lỗi xảy ra khi đăng ký bằng Google"
+            });
+        }
+    };
+
     return (
         <Row justify={'center'} style={{ marginTop: '30px' }}>
             <Col xs={24} md={16} lg={8}>
@@ -87,6 +103,22 @@ const Register = () => {
                             </Button>
                         </Form.Item>
                     </Form>
+
+                    <Divider>Hoặc</Divider>
+                    
+                    <Button
+                        icon={<GoogleOutlined />}
+                        onClick={handleGoogleRegister}
+                        style={{
+                            width: '100%',
+                            marginBottom: '16px',
+                            borderColor: '#db4437',
+                            color: '#db4437'
+                        }}
+                    >
+                        Đăng ký bằng Google
+                    </Button>
+
                     <Link href={'/'}>
                         <ArrowLeftOutlined /> Quay lại trang chủ
                     </Link>
