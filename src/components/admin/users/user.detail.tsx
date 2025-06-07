@@ -2,7 +2,9 @@
 import { Avatar, Button, Card, Descriptions, Divider, Modal, Space, Statistic, Table, Tag, Timeline, Typography } from "antd";
 import dayjs from "dayjs";
 import { useState, useEffect } from "react";
-import { sendRequest } from "@/utils/api";
+import { BookingService } from "@/services/booking.service";
+import { PaymentService } from "@/services/payment.service";
+import { HotelService } from "@/services/hotel.service";
 import { useSession } from "next-auth/react";
 import { UserOutlined, WalletOutlined, ShoppingOutlined, ClockCircleOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
 
@@ -29,13 +31,10 @@ const UserDetail = (props: IProps) => {
             setLoading(true);
             try {
                 // Lấy lịch sử đặt phòng của người dùng
-                const bookingsRes = await sendRequest({
-                    url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/bookings?user_id=${user._id}&limit=5`,
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${session?.user?.access_token}`
-                    }
-                });
+                const bookingsRes = await BookingService.getBookings(
+                    { user_id: user._id, pageSize: 100 },
+                    session?.user?.access_token!
+                );
                 
                 if (bookingsRes?.data?.results) {
                     const bookings = bookingsRes.data.results;
@@ -47,13 +46,10 @@ const UserDetail = (props: IProps) => {
                 }
                 
                 // Lấy lịch sử giao dịch của người dùng
-                const paymentsRes = await sendRequest({
-                    url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/payments?user_id=${user._id}&limit=5`,
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${session?.user?.access_token}`
-                    }
-                });
+                const paymentsRes = await PaymentService.getPayments(
+                    { user_id: user._id, pageSize: 100 },
+                    session?.user?.access_token!
+                );
                 
                 if (paymentsRes?.data?.results) {
                     setUserPayments(paymentsRes.data.results);
@@ -73,13 +69,7 @@ const UserDetail = (props: IProps) => {
                 const hotelPromises = hotelIds.map(async (hotelId) => {
                     if (!hotelId) return null;
                     
-                    const res = await sendRequest({
-                        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/hotels/${hotelId}`,
-                        method: 'GET',
-                        headers: {
-                            'Authorization': `Bearer ${session?.user?.access_token}`
-                        }
-                    });
+                    const res = await HotelService.getHotelById(hotelId, session?.user?.access_token!);
                     
                     if (res?.data) {
                         return {

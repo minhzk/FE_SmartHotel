@@ -1,7 +1,7 @@
 'use client'
 import { Button, Carousel, Descriptions, Divider, Image, Modal, Rate, Space, Tag, Typography, Statistic, Row, Col } from "antd";
 import { useState, useEffect } from "react";
-import { sendRequest } from "@/utils/api";
+import { RoomService } from "@/services/room.service";
 import { useSession } from "next-auth/react";
 import { EnvironmentOutlined } from '@ant-design/icons';
 import { HOTEL_AMENITIES } from "@/constants/hotel.constants";
@@ -27,13 +27,7 @@ const HotelDetail = (props: IProps) => {
             setLoading(true);
             try {
                 // Lấy danh sách các loại phòng
-                const roomsRes = await sendRequest({
-                    url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/rooms/hotel/${hotel._id}`,
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${session?.user?.access_token}`
-                    }
-                });
+                const roomsRes = await RoomService.getRoomsByHotelId(hotel._id, session?.user?.access_token);
                 
                 if (roomsRes?.data?.results) {
                     setRoomTypes(roomsRes.data.results);
@@ -96,7 +90,7 @@ const HotelDetail = (props: IProps) => {
                     {hotel.ai_summary.average_sentiment !== undefined && (
                         <Text>
                             Đánh giá cảm xúc trung bình: <Tag color={hotel.ai_summary.average_sentiment >= 7 ? 'green' : (hotel.ai_summary.average_sentiment >= 5 ? 'blue' : 'orange')}>
-                                {hotel.ai_summary.average_sentiment.toFixed(1)}/10
+                                {(hotel.ai_summary.average_sentiment * 2).toFixed(1)}/10
                             </Tag>
                         </Text>
                     )}

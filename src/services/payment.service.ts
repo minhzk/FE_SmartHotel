@@ -1,8 +1,18 @@
+import { sendRequest } from "@/utils/api";
+
 export interface CreatePaymentRequest {
     booking_id: string;
     payment_type: string;
     payment_method: string;
     redirect_url?: string;
+}
+
+export interface GetPaymentsRequest {
+    current?: number;
+    pageSize?: number;
+    status?: string;
+    payment_method?: string;
+    [key: string]: any;
 }
 
 export class PaymentService {
@@ -42,5 +52,29 @@ export class PaymentService {
         }
 
         return res.json();
+    }
+
+    static async getPayments(params: GetPaymentsRequest, accessToken: string): Promise<IBackendRes<any>> {
+        return await sendRequest<IBackendRes<any>>({
+            url: `${this.baseUrl}/api/v1/payments`,
+            method: 'GET',
+            queryParams: params,
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+            nextOption: {
+                next: { tags: ['list-payments'] }
+            }
+        });
+    }
+
+    static async getPaymentById(id: string, accessToken: string): Promise<IBackendRes<any>> {
+        return await sendRequest<IBackendRes<any>>({
+            url: `${this.baseUrl}/api/v1/payments/${id}`,
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
     }
 }

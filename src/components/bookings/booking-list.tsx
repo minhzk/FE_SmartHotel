@@ -4,7 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { Table, Card, Tag, Button, Empty, message, Tabs, DatePicker, Space } from 'antd';
 import { ClockCircleOutlined, CheckCircleOutlined, CloseCircleOutlined, EyeOutlined, StarOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import { sendRequest } from '@/utils/api';
+import { BookingService } from '@/services/booking.service';
+import { HotelService } from '@/services/hotel.service';
+import { RoomService } from '@/services/room.service';
+import { ReviewService } from '@/services/review.service';
 import { useRouter } from 'next/navigation';
 import BookingDetail from './booking-detail';
 import BookingCancel from './booking-cancel';
@@ -103,14 +106,7 @@ const BookingList: React.FC<BookingListProps> = ({ session }) => {
         queryParams.dateRange = `${dateRange[0].format('YYYY-MM-DD')},${dateRange[1].format('YYYY-MM-DD')}`;
       }
 
-      const res = await sendRequest({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/bookings`,
-        method: 'GET',
-        queryParams,
-        headers: {
-          'Authorization': `Bearer ${session.user.access_token}`,
-        },
-      });
+      const res = await BookingService.getBookings(queryParams, session.user.access_token);
 
       if (res?.data?.results) {
         const bookings = res.data.results;
@@ -134,13 +130,7 @@ const BookingList: React.FC<BookingListProps> = ({ session }) => {
     try {
       // Fetch hotel details
       const hotelPromises = uniqueHotelIds.map(async (hotelId) => {
-        const res = await sendRequest({
-          url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/hotels/${hotelId}`,
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${session.user.access_token}`
-          }
-        });
+        const res = await HotelService.getHotelById(hotelId, session.user.access_token);
         
         if (res?.data) {
           return { id: hotelId, name: res.data.name };
@@ -152,13 +142,7 @@ const BookingList: React.FC<BookingListProps> = ({ session }) => {
       
       // Fetch room details
       const roomPromises = uniqueRoomIds.map(async (roomId) => {
-        const res = await sendRequest({
-          url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/rooms/${roomId}`,
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${session.user.access_token}`
-          }
-        });
+        const res = await RoomService.getRoomById(roomId, session.user.access_token);
         
         if (res?.data) {
           return { id: roomId, name: res.data.name };
@@ -192,13 +176,7 @@ const BookingList: React.FC<BookingListProps> = ({ session }) => {
     try {
       console.log('Fetching user reviews with token:', session.user.access_token);
       
-      const res = await sendRequest({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/reviews/user`,
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${session.user.access_token}`
-        }
-      });
+      const res = await ReviewService.getUserReviews(session.user.access_token);
 
       console.log('User reviews API response:', res?.data);
 

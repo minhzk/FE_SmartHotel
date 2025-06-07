@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, message, Tooltip } from 'antd';
 import { HeartOutlined, HeartFilled } from '@ant-design/icons';
-import { sendRequest } from '@/utils/api';
+import { handleCheckFavoriteStatusAction, handleAddFavoriteAction, handleRemoveFavoriteAction } from '@/utils/actions';
 import { useRouter } from 'next/navigation';
 
 interface FavoriteButtonProps {
@@ -33,15 +33,11 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
 
   const checkFavoriteStatus = async () => {
     try {
-      const response = await sendRequest({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/favorites/check/${hotelId}`,
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${session?.user?.access_token}`,
-        },
-      });
-
-      setIsFavorite(response.data);
+      const result = await handleCheckFavoriteStatusAction(hotelId, session?.user?.access_token);
+      
+      if (result.success) {
+        setIsFavorite(result.data);
+      }
     } catch (error) {
       console.error('Error checking favorite status:', error);
     }
@@ -56,32 +52,31 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
 
     setLoading(true);
     try {
+      let result;
+      
       if (isFavorite) {
         // Remove from favorites
-        await sendRequest({
-          url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/favorites/${hotelId}`,
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${session?.user?.access_token}`,
-          },
-        });
-        message.success('Đã xóa khỏi danh sách yêu thích');
-        setIsFavorite(false);
+        result = await handleRemoveFavoriteAction(hotelId, session?.user?.access_token);
+        
+        if (result.success) {
+          message.success('Đã xóa khỏi danh sách yêu thích');
+          setIsFavorite(false);
+        } else {
+          message.error(result.message || 'Có lỗi xảy ra khi xóa khỏi yêu thích');
+        }
       } else {
         // Add to favorites
-        await sendRequest({
-          url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/favorites`,
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${session?.user?.access_token}`,
-          },
-          body: { hotel_id: hotelId },
-        });
-        message.success('Đã thêm vào danh sách yêu thích');
-        setIsFavorite(true);
+        result = await handleAddFavoriteAction(hotelId, session?.user?.access_token);
+        
+        if (result.success) {
+          message.success('Đã thêm vào danh sách yêu thích');
+          setIsFavorite(true);
+        } else {
+          message.error(result.message || 'Có lỗi xảy ra khi thêm vào yêu thích');
+        }
       }
     } catch (error: any) {
-      message.error(error?.message || 'Có lỗi xảy ra khi cập nhật yêu thích');
+      message.error('Có lỗi xảy ra khi cập nhật yêu thích');
     } finally {
       setLoading(false);
     }

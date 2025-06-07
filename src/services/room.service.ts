@@ -29,6 +29,15 @@ export interface UpdateRoomRequest {
     is_bookable?: boolean;
 }
 
+export interface GetRoomsRequest {
+    current?: number;
+    pageSize?: number;
+    hotel_id?: string;
+    room_type?: string;
+    is_active?: boolean;
+    [key: string]: any;
+}
+
 export class RoomService {
     private static baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -99,5 +108,32 @@ export class RoomService {
         }
 
         return res.json();
+    }
+
+    static async getRooms(params: GetRoomsRequest, accessToken: string): Promise<IBackendRes<any>> {
+        return await sendRequest<IBackendRes<any>>({
+            url: `${this.baseUrl}/api/v1/rooms`,
+            method: 'GET',
+            queryParams: params,
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+            nextOption: {
+                next: { tags: ['list-rooms'] }
+            }
+        });
+    }
+
+    static async getRoomsByHotelId(hotelId: string, accessToken?: string): Promise<IBackendRes<any>> {
+        return await sendRequest<IBackendRes<any>>({
+            url: `${this.baseUrl}/api/v1/rooms/hotel/${hotelId}`,
+            method: 'GET',
+            headers: accessToken ? {
+                Authorization: `Bearer ${accessToken}`,
+            } : undefined,
+            nextOption: {
+                next: { tags: [`rooms-hotel-${hotelId}`] }
+            }
+        });
     }
 }

@@ -1,5 +1,7 @@
 import { auth } from "@/auth";
-import { sendRequest } from "@/utils/api";
+import { HotelService } from "@/services/hotel.service";
+import { RoomService } from "@/services/room.service";
+import { ReviewService } from "@/services/review.service";
 import HotelDetail from "@/components/hotels/hotel-detail";
 import { notFound } from "next/navigation";
 
@@ -13,44 +15,19 @@ export default async function HotelDetailPage({ params }: IProps) {
   
   try {
     // Fetch hotel data
-    const hotelResponse = await sendRequest<IBackendRes<any>>({
-      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/hotels/${hotelId}`,
-      method: "GET",
-      headers: session?.user?.access_token ? {
-        Authorization: `Bearer ${session?.user?.access_token}`,
-      } : undefined,
-      nextOption: {
-        next: { tags: [`hotel-${hotelId}`] }
-      }
-    });
+    const hotelResponse = await HotelService.getHotelByIdPublic(hotelId, session?.user?.access_token);
     
     if (!hotelResponse?.data) {
       return notFound();
     }
     
     // Fetch hotel rooms
-    const roomsResponse = await sendRequest<IBackendRes<any>>({
-      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/rooms/hotel/${hotelId}`,
-      method: "GET",
-      headers: session?.user?.access_token ? {
-        Authorization: `Bearer ${session?.user?.access_token}`,
-      } : undefined,
-      nextOption: {
-        next: { tags: [`rooms-hotel-${hotelId}`] }
-      }
-    });
+    const roomsResponse = await RoomService.getRoomsByHotelId(hotelId, session?.user?.access_token);
     
     // Fetch hotel reviews
-    const reviewsResponse = await sendRequest<IBackendRes<any>>({
-      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/reviews/hotel/${hotelId}`,
-      method: "GET",
-      queryParams: {
-        pageSize: 5,
-        current: 1
-      },
-      nextOption: {
-        next: { tags: [`reviews-hotel-${hotelId}`] }
-      }
+    const reviewsResponse = await ReviewService.getReviewsByHotelId(hotelId, {
+      pageSize: 5,
+      current: 1
     });
     
     return (

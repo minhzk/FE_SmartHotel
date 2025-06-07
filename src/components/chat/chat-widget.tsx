@@ -11,7 +11,7 @@ import {
 } from '@ant-design/icons';
 import { useSession } from 'next-auth/react';
 import { v4 as uuidv4 } from 'uuid';
-import { sendRequest } from '@/utils/api';
+import { ChatService } from '@/services/chat.service';
 import ChatBubble from './chat-bubble';
 
 interface ChatMessage {
@@ -104,14 +104,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
 
       console.log('Creating chat session with data:', data); // Debug log
 
-      const response = await sendRequest({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/chatbot/sessions`,
-        method: 'POST',
-        body: data,
-        headers: session?.user?.access_token
-          ? { Authorization: `Bearer ${session.user.access_token}` }
-          : undefined,
-      });
+      const response = await ChatService.createSession(data, session?.user?.access_token);
 
       if (response?.data) {
         const newSessionId = response.data.session.session_id;
@@ -142,13 +135,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
     try {
       setLoading(true);
 
-      const response = await sendRequest({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/chatbot/sessions/${sid}/messages`,
-        method: 'GET',
-        headers: session?.user?.access_token
-          ? { Authorization: `Bearer ${session.user.access_token}` }
-          : undefined,
-      });
+      const response = await ChatService.getChatHistory(sid, session?.user?.access_token);
 
       if (response?.data?.messages) {
         setMessages(
@@ -196,10 +183,8 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
     setLoading(true);
 
     try {
-      const response = await sendRequest({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/chatbot/messages`,
-        method: 'POST',
-        body: {
+      const response = await ChatService.sendMessage(
+        {
           session_id: sessionId,
           message: userMessage.message,
           is_general_mode: isGeneralMode,
@@ -209,10 +194,8 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
             booking_assistance: enableBookingAssistance || isGeneralMode,
           },
         },
-        headers: session?.user?.access_token
-          ? { Authorization: `Bearer ${session.user.access_token}` }
-          : undefined,
-      });
+        session?.user?.access_token
+      );
 
       if (response?.data?.botMessage) {
         const botMsg = response.data.botMessage;
@@ -238,15 +221,11 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
   // Hàm phản hồi về tin nhắn từ bot
   const sendFeedback = async (messageId: string, feedbackType: 'like' | 'dislike') => {
     try {
-      await sendRequest({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/chatbot/feedback`,
-        method: 'POST',
-        body: {
-          messageId,
-          sessionId,
-          feedbackType,
-          userId: session?.user?._id,
-        },
+      await ChatService.sendFeedback({
+        messageId,
+        sessionId: sessionId!,
+        feedbackType,
+        userId: session?.user?._id,
       });
 
       message.success(
@@ -261,13 +240,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
   const closeChat = async () => {
     if (sessionId) {
       try {
-        await sendRequest({
-          url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/chatbot/sessions/${sessionId}/close`,
-          method: 'POST',
-          headers: session?.user?.access_token
-            ? { Authorization: `Bearer ${session.user.access_token}` }
-            : undefined,
-        });
+        await ChatService.closeSession(sessionId, session?.user?.access_token);
 
         // Xóa sessionId khỏi localStorage và state
         localStorage.removeItem(LOCAL_STORAGE_SESSION_KEY);

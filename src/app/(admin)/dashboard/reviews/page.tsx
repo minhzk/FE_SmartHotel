@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import ReviewTable from "@/components/admin/reviews/review.table";
-import { sendRequest } from "@/utils/api";
+import { ReviewService } from "@/services/review.service";
 
 interface IProps {
     params: { id: string }
@@ -8,24 +8,14 @@ interface IProps {
 }
 
 const ManageReviewsPage = async (props: IProps) => {
-    const current = props?.searchParams?.current ?? 1;
-    const pageSize = props?.searchParams?.pageSize ?? 10;
+    const current = Number(props?.searchParams?.current) || 1;
+    const pageSize = Number(props?.searchParams?.pageSize) || 10;
     const session = await auth();
 
-    const res = await sendRequest<IBackendRes<any>>({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/reviews`,
-        method: "GET",
-        queryParams: {
-            current,
-            pageSize
-        },
-        headers: {
-            Authorization: `Bearer ${session?.user?.access_token}`,
-        },
-        nextOption: {
-            next: { tags: ['list-reviews'] }
-        }
-    });
+    const res = await ReviewService.getReviews(
+        { current, pageSize },
+        session?.user?.access_token!
+    );
 
     return (
         <div>

@@ -5,7 +5,7 @@ import { Button, Popconfirm, Table, Tag, Image, Input, Select, Row, Col, Card } 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { sendRequest } from "@/utils/api";
+import { HotelService } from "@/services/hotel.service";
 import HotelCreate from "./hotel.create";
 import HotelUpdate from "./hotel.update";
 import HotelDetail from "./hotel.detail";
@@ -76,15 +76,10 @@ const HotelTable = (props: IProps) => {
             if (searchParams.has('search')) queryParams.search = searchParams.get('search');
             if (searchParams.has('adults')) queryParams.adults = searchParams.get('adults');
             if (searchParams.has('children')) queryParams.children = searchParams.get('children');
-            // Call API
-            const res = await sendRequest({
-                url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/hotels`,
-                method: 'GET',
-                queryParams,
-                headers: session?.user?.access_token
-                    ? { Authorization: `Bearer ${session.user.access_token}` }
-                    : undefined,
-            });
+            
+            // Call HotelService
+            const res = await HotelService.getHotels(queryParams, session.user.access_token);
+            
             if (res?.data) {
                 setHotelsState(res.data.results || []);
                 setMetaState(res.data.meta || meta);

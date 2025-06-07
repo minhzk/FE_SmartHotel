@@ -12,6 +12,8 @@ import { ROOM_AMENITIES } from "@/constants/room.constants";
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 import { sendRequest } from '@/utils/api';
+import { RoomAvailabilityService } from '@/services/room-availability.service';
+import { BookingService } from '@/services/booking.service';
 import { useSession } from 'next-auth/react';
 
 const { Title, Text, Paragraph } = Typography;
@@ -84,16 +86,11 @@ const HotelRooms: React.FC<RoomProps> = ({
     
     setCheckingAvailability(true);
     try {
-      // Sử dụng API check-room-dates đã có sẵn
-      const response = await sendRequest({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/room-availability/check-room-dates`,
-        method: 'GET',
-        queryParams: {
-          roomId,
-          startDate: startDate.format('YYYY-MM-DD'),
-          endDate: endDate.format('YYYY-MM-DD')
-        }
-      });
+      const response = await RoomAvailabilityService.checkRoomDates(
+        roomId,
+        startDate.format('YYYY-MM-DD'),
+        endDate.format('YYYY-MM-DD')
+      );
       
       setIsRoomAvailable(response?.data?.isAvailable || false);
       
@@ -148,15 +145,11 @@ const HotelRooms: React.FC<RoomProps> = ({
       const endDate = values.dateRange[1];
       
       try {
-        const availabilityCheck = await sendRequest({
-          url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/room-availability/check-room-dates`,
-          method: 'GET',
-          queryParams: {
-            roomId: bookingRoom._id,
-            startDate: startDate.format('YYYY-MM-DD'),
-            endDate: endDate.format('YYYY-MM-DD')
-          }
-        });
+        const availabilityCheck = await RoomAvailabilityService.checkRoomDates(
+          bookingRoom._id,
+          startDate.format('YYYY-MM-DD'),
+          endDate.format('YYYY-MM-DD')
+        );
         
         if (!availabilityCheck?.data?.isAvailable) {
           message.error('Phòng đã được đặt trong khoảng thời gian này. Vui lòng chọn ngày khác.');
@@ -184,14 +177,7 @@ const HotelRooms: React.FC<RoomProps> = ({
         special_requests: values.specialRequests,
       };
       
-      const response = await sendRequest({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/bookings`,
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session?.user?.access_token}`,
-        },
-        body: bookingData
-      });
+      const response = await BookingService.createBooking(bookingData, session?.user?.access_token!);
       
       if (response?.data) {
         message.success('Đặt phòng thành công');

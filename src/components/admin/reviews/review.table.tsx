@@ -6,10 +6,11 @@ import { useState, useEffect } from "react";
 import ReviewDetail from "./review.detail";
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
-import { sendRequest } from "@/utils/api";
+import { ReviewService } from "@/services/review.service";
+import { UserService } from "@/services/user.service";
+import { HotelService } from "@/services/hotel.service";
 import { useSession } from "next-auth/react";
 import ReviewReply from "./review.reply";
-import { log } from "console";
 
 const { RangePicker } = DatePicker;
 
@@ -87,13 +88,7 @@ const ReviewTable = (props: IProps) => {
 
             try {
                 const userPromises = uniqueUserIds.map(async (userId) => {
-                    const res = await sendRequest({
-                        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/users/${userId}`,
-                        method: 'GET',
-                        headers: {
-                            'Authorization': `Bearer ${session?.user?.access_token}`
-                        }
-                    });
+                    const res = await UserService.getUserById(userId, session?.user?.access_token!);
 
                     if (res?.data) {
                         return {
@@ -133,13 +128,7 @@ const ReviewTable = (props: IProps) => {
 
             try {
                 const hotelPromises = uniqueHotelIds.map(async (hotelId) => {
-                    const res = await sendRequest({
-                        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/hotels/${hotelId}`,
-                        method: 'GET',
-                        headers: {
-                            'Authorization': `Bearer ${session?.user?.access_token}`
-                        }
-                    });
+                    const res = await HotelService.getHotelById(hotelId, session?.user?.access_token!);
 
                     if (res?.data) {
                         return {
@@ -396,14 +385,7 @@ const ReviewTable = (props: IProps) => {
                 }
             }
 
-            const res = await sendRequest({
-                url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/reviews`,
-                method: 'GET',
-                queryParams: queryParams,
-                headers: {
-                    'Authorization': `Bearer ${session.user.access_token}`
-                }
-            });
+            const res = await ReviewService.getReviews(queryParams, session.user.access_token);
 
             if (res?.data) {
                 setReviews(res.data.results || []);

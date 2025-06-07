@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Radio, Card, Typography, Divider, Button, Space, Alert, Row, Col, Skeleton } from 'antd';
 import { CheckCircleFilled, CreditCardOutlined, WalletOutlined } from '@ant-design/icons';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { sendRequest } from '@/utils/api';
+import { PaymentService } from '@/services/payment.service';
 import dayjs from 'dayjs';
 
 const { Title, Text, Paragraph } = Typography;
@@ -116,19 +116,15 @@ const PaymentSelection: React.FC<PaymentSelectionProps> = ({
     try {
       const redirectUrl = window.location.origin + '/payment/result';
       
-      const response = await sendRequest({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/payments`,
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session?.user?.access_token}`,
-        },
-        body: {
+      const response = await PaymentService.createPayment(
+        {
           booking_id: bookingId,
           payment_type: paymentType,
           payment_method: paymentMethod,
           redirect_url: redirectUrl
-        }
-      });
+        },
+        session?.user?.access_token!
+      );
       
       if (response?.data?.payment_url) {
         // Chuyển hướng đến trang thanh toán VNPay

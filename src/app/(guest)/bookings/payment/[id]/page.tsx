@@ -1,6 +1,8 @@
 import { auth } from '@/auth';
 import PaymentSelection from '@/components/bookings/payment-selection'; 
-import { sendRequest } from '@/utils/api';
+import { BookingService } from '@/services/booking.service';
+import { HotelService } from '@/services/hotel.service';
+import { RoomService } from '@/services/room.service';
 import { redirect } from 'next/navigation';
 
 export default async function PaymentPage({ 
@@ -23,13 +25,7 @@ export default async function PaymentPage({
   // Fetch booking details
   try {
     // Fetch booking information
-    const booking = await sendRequest({
-      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/bookings/${params.id}`,
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${session?.user?.access_token}`,
-      },
-    });
+    const booking = await BookingService.getBookingById(params.id, session?.user?.access_token!);
     
     if (!booking?.data) {
       redirect('/bookings?error=booking-not-found');
@@ -45,16 +41,10 @@ export default async function PaymentPage({
     }
     
     // Fetch hotel information
-    const hotel = await sendRequest({
-      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/hotels/${booking.data.hotel_id}`,
-      method: 'GET',
-    });
+    const hotel = await HotelService.getHotelById(booking.data.hotel_id, session?.user?.access_token!);
     
     // Fetch room information
-    const room = await sendRequest({
-      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/rooms/${booking.data.room_id}`,
-      method: 'GET',
-    });
+    const room = await RoomService.getRoomById(booking.data.room_id, session?.user?.access_token!);
     
     return (
       <div className="container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>

@@ -2,7 +2,7 @@
 import { Button, Descriptions, Divider, Modal, Skeleton, Space, Tag, Typography } from "antd";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
-import { sendRequest } from "@/utils/api";
+import { BookingService } from "@/services/booking.service";
 import { useSession } from "next-auth/react";
 
 const { Title, Text } = Typography;
@@ -25,13 +25,7 @@ const PaymentDetail = (props: IProps) => {
             
             setLoading(true);
             try {
-                const res = await sendRequest({
-                    url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/bookings/${payment.booking_id}`,
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${session?.user?.access_token}`
-                    }
-                });
+                const res = await BookingService.getBookingById(payment.booking_id, session?.user?.access_token!);
                 
                 if (res?.data) {
                     setBookingDetails(res.data);

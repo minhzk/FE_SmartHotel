@@ -5,7 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import { Result, Button, Card, Typography, Spin, Space, Descriptions } from 'antd';
 import { CheckCircleFilled, CloseCircleFilled } from '@ant-design/icons';
 import Link from 'next/link';
-import { sendRequest } from '@/utils/api';
+import { PaymentService } from '@/services/payment.service';
+import { BookingService } from '@/services/booking.service';
 import { useSession } from 'next-auth/react';
 
 const { Title, Text, Paragraph } = Typography;
@@ -33,26 +34,14 @@ const PaymentResultPage = () => {
 
       try {
         // Lấy thông tin thanh toán
-        const paymentResponse = await sendRequest({
-          url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/payments/${transactionId}`,
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${session.user.access_token}`,
-          },
-        });
+        const paymentResponse = await PaymentService.getPaymentById(transactionId, session.user.access_token);
 
         if (paymentResponse?.data) {
           setPaymentDetails(paymentResponse.data);
           
           // Lấy thông tin đặt phòng
           if (paymentResponse.data.booking_id) {
-            const bookingResponse = await sendRequest({
-              url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/bookings/${paymentResponse.data.booking_id}`,
-              method: 'GET',
-              headers: {
-                'Authorization': `Bearer ${session.user.access_token}`,
-              },
-            });
+            const bookingResponse = await BookingService.getBookingById(paymentResponse.data.booking_id, session.user.access_token);
             
             if (bookingResponse?.data) {
               setBookingDetails(bookingResponse.data);

@@ -6,7 +6,7 @@ import {
   Breadcrumb, Button, Tabs, message, Alert
 } from 'antd';
 import { HomeOutlined, HeartOutlined } from '@ant-design/icons';
-import { sendRequest } from '@/utils/api';
+import { handleGetFavoritesAction, handleRemoveFavoriteAction } from '@/utils/actions';
 import Link from 'next/link';
 import HotelCard from '@/components/hotels/hotel-card';
 
@@ -30,25 +30,22 @@ const FavoritesList: React.FC<FavoritesListProps> = ({ session }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await sendRequest({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/favorites`,
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${session?.user?.access_token}`,
-        },
-      });
+      const result = await handleGetFavoritesAction(session?.user?.access_token);
 
-      if (response?.data) {
+      if (result.success && result.data) {
         // Chuyển đổi dữ liệu để phù hợp với định dạng hotel
-        const hotelsList = response.data.map((item: any) => ({
+        const hotelsList = result.data.map((item: any) => ({
           ...item.hotel_id,
           _id: item.hotel_id._id
         }));
         setFavorites(hotelsList);
+      } else {
+        setError(result.message || 'Không thể tải danh sách yêu thích');
+        message.error(result.message || 'Không thể tải danh sách yêu thích');
       }
     } catch (error: any) {
       console.error('Error fetching favorites:', error);
-      setError(error?.message || 'Không thể tải danh sách yêu thích');
+      setError('Không thể tải danh sách yêu thích');
       message.error('Không thể tải danh sách yêu thích');
     } finally {
       setLoading(false);
@@ -57,19 +54,17 @@ const FavoritesList: React.FC<FavoritesListProps> = ({ session }) => {
 
   const handleRemoveFromFavorites = async (hotelId: string) => {
     try {
-      await sendRequest({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/favorites/${hotelId}`,
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${session?.user?.access_token}`,
-        },
-      });
+      const result = await handleRemoveFavoriteAction(hotelId, session?.user?.access_token);
       
-      // Cập nhật danh sách sau khi xóa
-      setFavorites(favorites.filter(hotel => hotel._id !== hotelId));
-      message.success('Đã xóa khỏi danh sách yêu thích');
+      if (result.success) {
+        // Cập nhật danh sách sau khi xóa
+        setFavorites(favorites.filter(hotel => hotel._id !== hotelId));
+        message.success('Đã xóa khỏi danh sách yêu thích');
+      } else {
+        message.error(result.message || 'Có lỗi xảy ra khi xóa khỏi yêu thích');
+      }
     } catch (error: any) {
-      message.error(error?.message || 'Có lỗi xảy ra khi xóa khỏi yêu thích');
+      message.error('Có lỗi xảy ra khi xóa khỏi yêu thích');
     }
   };
 

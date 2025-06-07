@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Form, Input, Button, message, Alert, Steps } from 'antd';
 import { LockOutlined, MailOutlined, CheckCircleOutlined } from '@ant-design/icons';
-import { sendRequest } from '@/utils/api';
+import { AuthService } from '@/services/auth.service';
 
 interface ChangePasswordFormProps {
   session: any;
@@ -21,13 +21,7 @@ const ChangePasswordForm = ({ session, email }: ChangePasswordFormProps) => {
     try {
       setLoading(true);
       
-      const response = await sendRequest<IBackendRes<any>>({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/retry-password`,
-        method: 'POST',
-        body: {
-            email
-        }
-      });
+      const response = await AuthService.retryPassword({ email });
       
       if (response?.data) {
         message.success('Mã xác nhận đã được gửi đến email của bạn!');
@@ -45,15 +39,11 @@ const ChangePasswordForm = ({ session, email }: ChangePasswordFormProps) => {
     try {
       setLoading(true);
       
-      const response = await sendRequest<IBackendRes<any>>({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/change-password`,
-        method: 'POST',
-        body: {
-          email,
-          code: values.code,
-          password: values.password,
-          confirmPassword: values.confirmPassword,
-        },
+      const response = await AuthService.changePassword({
+        email,
+        code: values.code,
+        password: values.password,
+        confirmPassword: values.confirmPassword,
       });
       
       if (response?.data) {
@@ -61,7 +51,7 @@ const ChangePasswordForm = ({ session, email }: ChangePasswordFormProps) => {
         setCurrentStep(2);
         form.resetFields();
       } else {
-        message.error('Mã code không chính xác hoặc đã hết hạn!');
+        message.error('Mã code không chính xác hoặc đã hết hạn!');
       }
     } catch (error: any) {
       message.error(error.response?.data?.message || 'Có lỗi xảy ra khi đổi mật khẩu');

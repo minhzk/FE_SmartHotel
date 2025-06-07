@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Card, Row, Col, Typography, Space, Pagination, Spin, Select, Checkbox, Rate, Input, Button, Empty, Divider, Breadcrumb, DatePicker } from "antd";
 import { FilterOutlined, HomeOutlined } from "@ant-design/icons";
-import { sendRequest } from "@/utils/api";
+import { HotelService } from "@/services/hotel.service";
 import HotelCard from "./hotel-card";
 import queryString from 'query-string';
 import debounce from 'lodash/debounce';
@@ -188,14 +188,10 @@ const HotelListing = ({ session }: IHotelListingProps) => {
     if (sortBy) queryParams.sortBy = sortBy;
     
     try {
-      const res = await sendRequest<IBackendRes<IModelPaginate<any>>>({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/hotels`,
-        method: "GET",
+      const res = await HotelService.getHotels(
         queryParams,
-        headers: session?.user?.access_token ? {
-          Authorization: `Bearer ${session?.user?.access_token}`,
-        } : undefined
-      });
+        session?.user?.access_token
+      );
       
       if (res?.data) {
         setHotels(res.data.results || []);

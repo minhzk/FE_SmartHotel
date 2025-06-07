@@ -9,7 +9,8 @@ import Highlighter from 'react-highlight-words';
 import RoomCreate from "./room.create";
 import RoomUpdate from "./room.update";
 import RoomAvailability from "./room.availability";
-import { sendRequest } from "@/utils/api";
+import { HotelService } from "@/services/hotel.service";
+import { RoomService } from "@/services/room.service";
 import { handleDeleteRoomAction } from "@/utils/actions";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -92,11 +93,10 @@ const RoomTable = ({ rooms = [], meta = { current: 1, pageSize: 10, pages: 0, to
     useEffect(() => {
         const fetchHotels = async () => {
             try {
-                const res = await sendRequest<IBackendRes<any>>({
-                    url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/hotels`,
-                    method: 'GET',
-                    queryParams: { current: 1, pageSize: 100 }
-                });
+                const res = await HotelService.getHotels(
+                    { current: 1, pageSize: 100 },
+                    session?.user?.access_token || ''
+                );
                 
                 if (res?.data) {
                     setHotels(res.data.results || []);
@@ -106,8 +106,10 @@ const RoomTable = ({ rooms = [], meta = { current: 1, pageSize: 10, pages: 0, to
             }
         };
         
-        fetchHotels();
-    }, []);
+        if (session?.user?.access_token) {
+            fetchHotels();
+        }
+    }, [session]);
 
     // Fetch rooms when searchParams or session changes
     useEffect(() => {
@@ -116,6 +118,8 @@ const RoomTable = ({ rooms = [], meta = { current: 1, pageSize: 10, pages: 0, to
     }, [searchParams, session]);
 
     const fetchRooms = async () => {
+        if (!session?.user?.access_token) return;
+        
         try {
             setLoading(true);
             const queryParams: any = {};
@@ -126,14 +130,9 @@ const RoomTable = ({ rooms = [], meta = { current: 1, pageSize: 10, pages: 0, to
             if (searchParams.has('is_active')) queryParams.is_active = searchParams.get('is_active');
             if (searchParams.has('is_bookable')) queryParams.is_bookable = searchParams.get('is_bookable');
             if (searchParams.has('search')) queryParams.search = searchParams.get('search');
-            const res = await sendRequest<IBackendRes<any>>({
-                url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/rooms`,
-                method: 'GET',
-                queryParams,
-                headers: session?.user?.access_token
-                    ? { Authorization: `Bearer ${session.user.access_token}` }
-                    : undefined,
-            });
+            
+            const res = await RoomService.getRooms(queryParams, session.user.access_token);
+            
             if (res?.data) {
                 setDataSource(res.data.results || []);
                 setPagination({

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Modal, Form, Input, Rate, Button, message, Typography } from 'antd';
 import { StarOutlined } from '@ant-design/icons';
-import { sendRequest } from '@/utils/api';
+import { ReviewService } from '@/services/review.service';
 
 const { TextArea } = Input;
 const { Title, Text } = Typography;
@@ -49,14 +49,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
         review_text: values.review_text
       };
       
-      await sendRequest({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/reviews`,
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.user.access_token}`
-        },
-        body: payload
-      });
+      await ReviewService.createReview(payload, session.user.access_token);
       
       message.success('Đánh giá của bạn đã được gửi thành công!');
       form.resetFields();

@@ -27,6 +27,15 @@ export interface UpdateHotelRequest {
     is_active?: boolean;
 }
 
+export interface GetHotelsRequest {
+    current?: number;
+    pageSize?: number;
+    name?: string;
+    city?: string;
+    is_active?: boolean;
+    [key: string]: any;
+}
+
 export class HotelService {
     private static baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -78,6 +87,33 @@ export class HotelService {
             headers: {
                 Authorization: `Bearer ${accessToken}`,
             },
+        });
+    }
+
+    static async getHotelByIdPublic(id: string, accessToken?: string): Promise<IBackendRes<any>> {
+        return await sendRequest<IBackendRes<any>>({
+            url: `${this.baseUrl}/api/v1/hotels/${id}`,
+            method: 'GET',
+            headers: accessToken ? {
+                Authorization: `Bearer ${accessToken}`,
+            } : undefined,
+            nextOption: {
+                next: { tags: [`hotel-${id}`] }
+            }
+        });
+    }
+
+    static async getHotels(params: GetHotelsRequest, accessToken: string): Promise<IBackendRes<any>> {
+        return await sendRequest<IBackendRes<any>>({
+            url: `${this.baseUrl}/api/v1/hotels`,
+            method: 'GET',
+            queryParams: params,
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+            nextOption: {
+                next: { tags: ['list-hotels'] }
+            }
         });
     }
 }

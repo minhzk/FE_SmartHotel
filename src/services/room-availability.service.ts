@@ -1,3 +1,6 @@
+import { sendRequest } from '@/utils/api';
+
+
 export class RoomAvailabilityService {
     private static baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -50,5 +53,17 @@ export class RoomAvailabilityService {
         }
         
         return res.json();
+    }
+
+    static async checkRoomDates(roomId: string, startDate: string, endDate: string): Promise<IBackendRes<any>> {
+        return await sendRequest<IBackendRes<any>>({
+            url: `${this.baseUrl}/api/v1/room-availability/check-room-dates`,
+            method: 'GET',
+            queryParams: {
+                roomId,
+                startDate,
+                endDate
+            },
+        });
     }
 }

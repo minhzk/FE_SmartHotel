@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Modal, Form, Input, Button, Alert, Typography, Spin, message } from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
-import { sendRequest } from '@/utils/api';
+import { BookingService } from '@/services/booking.service';
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -34,17 +34,13 @@ const BookingCancel: React.FC<BookingCancelProps> = ({
   const handleSubmit = async (values: any) => {
     setLoading(true);
     try {
-      await sendRequest({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/bookings/cancel`,
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session?.user?.access_token}`
-        },
-        body: {
+      await BookingService.cancelBooking(
+        {
           _id: booking._id,
           cancellation_reason: values.reason
-        }
-      });
+        },
+        session?.user?.access_token!
+      );
       
       message.success('Hủy đặt phòng thành công');
       onSuccess();

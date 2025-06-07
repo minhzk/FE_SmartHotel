@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Rate, Typography, Empty, Spin, Button, Modal, Form, Input, message, Tag, Pagination, DatePicker, Space, Select } from 'antd';
 import { EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import { Session } from 'next-auth';
-import { sendRequest } from '@/utils/api';
+import { ReviewService } from '@/services/review.service';
 import dayjs from 'dayjs';
 
 const { Title, Text, Paragraph } = Typography;
@@ -82,14 +82,7 @@ const ReviewList: React.FC<ReviewListProps> = ({ session }) => {
         queryParams.rating = ratingFilter;
       }
 
-      const response = await sendRequest<IBackendRes<any>>({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/reviews/user`,
-        method: 'GET',
-        queryParams,
-        headers: {
-          Authorization: `Bearer ${session.user.access_token}`,
-        },
-      });
+      const response = await ReviewService.getUserReviews(queryParams, session.user.access_token);
 
       if (response?.data) {
         setReviews(response.data.results || []);
@@ -127,17 +120,13 @@ const ReviewList: React.FC<ReviewListProps> = ({ session }) => {
     try {
       const values = await form.validateFields();
       
-      await sendRequest<IBackendRes<any>>({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/reviews`,
-        method: 'PATCH',
-        body: {
+      await ReviewService.updateReview(
+        {
           _id: selectedReview._id,
           ...values,
         },
-        headers: {
-          Authorization: `Bearer ${session.user.access_token}`,
-        },
-      });
+        session.user.access_token
+      );
 
       message.success('Cập nhật đánh giá thành công');
       setEditModalVisible(false);
@@ -152,13 +141,7 @@ const ReviewList: React.FC<ReviewListProps> = ({ session }) => {
     if (!selectedReview || !session?.user?.access_token) return;
 
     try {
-      await sendRequest<IBackendRes<any>>({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/reviews/${selectedReview._id}`,
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${session.user.access_token}`,
-        },
-      });
+      await ReviewService.deleteReview(selectedReview._id, session.user.access_token);
 
       message.success('Xóa đánh giá thành công');
       setDeleteModalVisible(false);

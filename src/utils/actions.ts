@@ -9,6 +9,7 @@ import { RoomService } from '@/services/room.service';
 import { RoomAvailabilityService } from '@/services/room-availability.service';
 import { PaymentService } from '@/services/payment.service';
 import { ReviewService } from '@/services/review.service';
+import { FavoriteService } from '@/services/favorite.service';
 
 export async function authenticate(username: string, password: string) {
     try {
@@ -241,4 +242,102 @@ export const handleCheckCompletedBookingsAction = async () => {
     );
     revalidateTag('list-bookings');
     return res;
+};
+
+export const handleGetFavoritesAction = async (accessToken: string) => {
+    try {
+        const res = await FavoriteService.getFavorites(accessToken);
+
+        if (res?.data) {
+            return { success: true, data: res.data };
+        } else {
+            return { success: false, message: res?.message || 'Có lỗi xảy ra' };
+        }
+    } catch (error: any) {
+        console.error('Error fetching favorites:', error);
+        return {
+            success: false,
+            message:
+                error?.response?.data?.message ||
+                error?.message ||
+                'Không thể tải danh sách yêu thích',
+        };
+    }
+};
+
+export const handleRemoveFavoriteAction = async (
+    hotelId: string,
+    accessToken: string
+) => {
+    try {
+        const res = await FavoriteService.removeFavorite(hotelId, accessToken);
+
+        if (res?.data) {
+            revalidateTag('favorites');
+            return { success: true, data: res.data };
+        } else {
+            return { success: false, message: res?.message || 'Có lỗi xảy ra' };
+        }
+    } catch (error: any) {
+        console.error('Error removing favorite:', error);
+        return {
+            success: false,
+            message:
+                error?.response?.data?.message ||
+                error?.message ||
+                'Có lỗi xảy ra khi xóa khỏi yêu thích',
+        };
+    }
+};
+
+export const handleAddFavoriteAction = async (
+    hotelId: string,
+    accessToken: string
+) => {
+    try {
+        const res = await FavoriteService.addFavorite(hotelId, accessToken);
+
+        if (res?.data) {
+            revalidateTag('favorites');
+            return { success: true, data: res.data };
+        } else {
+            return { success: false, message: res?.message || 'Có lỗi xảy ra' };
+        }
+    } catch (error: any) {
+        console.error('Error adding favorite:', error);
+        return {
+            success: false,
+            message:
+                error?.response?.data?.message ||
+                error?.message ||
+                'Có lỗi xảy ra khi thêm vào yêu thích',
+        };
+    }
+};
+
+export const handleCheckFavoriteStatusAction = async (
+    hotelId: string,
+    accessToken: string
+) => {
+    try {
+        const res = await FavoriteService.checkFavoriteStatus(
+            hotelId,
+            accessToken
+        );
+
+        if (res?.data !== undefined) {
+            return { success: true, data: res.data };
+        } else {
+            return { success: false, message: res?.message || 'Có lỗi xảy ra' };
+        }
+    } catch (error: any) {
+        console.error('Error checking favorite status:', error);
+        return {
+            success: false,
+            message:
+                error?.response?.data?.message ||
+                error?.message ||
+                'Có lỗi xảy ra khi kiểm tra trạng thái yêu thích',
+        };
+    }
 };
