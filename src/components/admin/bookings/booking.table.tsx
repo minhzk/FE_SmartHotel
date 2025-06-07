@@ -6,8 +6,8 @@ import { useState, useEffect } from "react";
 import BookingDetail from "./booking.detail";
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
-import { sendRequest } from "@/utils/api";
 import { useSession } from "next-auth/react";
+import { BookingService } from "@/services/booking.service";
 
 const { RangePicker } = DatePicker;
 
@@ -26,6 +26,7 @@ enum BookingStatus {
   CONFIRMED = 'confirmed',
   CANCELED = 'canceled',
   COMPLETED = 'completed',
+  EXPIRED = 'expired',
 }
 
 enum PaymentStatus {
@@ -34,6 +35,7 @@ enum PaymentStatus {
   PARTIALLY_PAID = 'partially_paid',
   FAILED = 'failed',
   REFUNDED = 'refunded',
+  EXPIRED = 'expired',
 }
 
 enum DepositStatus {
@@ -97,8 +99,8 @@ const BookingTable = (props: IProps) => {
 
             if(searchParams) {
                 // Pagination params
-                if (searchParams.has('current')) queryParams.current = searchParams.get('current');
-                if (searchParams.has('pageSize')) queryParams.pageSize = searchParams.get('pageSize');
+                if (searchParams.has('current')) queryParams.current = Number(searchParams.get('current'));
+                if (searchParams.has('pageSize')) queryParams.pageSize = Number(searchParams.get('pageSize'));
                 
                 // Filter params
                 if (searchParams.has('status')) queryParams.status = searchParams.get('status');
@@ -121,16 +123,7 @@ const BookingTable = (props: IProps) => {
                 console.log('Fetching bookings with params:', queryParams);
             }
             
-            
-            
-            const res = await sendRequest({
-                url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/bookings`,
-                method: 'GET',
-                queryParams: queryParams,
-                headers: {
-                    'Authorization': `Bearer ${session.user.access_token}`
-                }
-            });
+            const res = await BookingService.getBookings(queryParams, session.user.access_token);
             
             if (res?.data) {
                 setBookings(res.data.results || []);
@@ -149,16 +142,7 @@ const BookingTable = (props: IProps) => {
         
         try {
             setLoading(true);
-            const res = await sendRequest({
-                url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/bookings/check-completed`,
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${session.user.access_token}`,
-                    'Content-Type': 'application/json'  // Đảm bảo đúng content type
-                },
-                // Thêm body trống để tránh một số vấn đề với certaim API frameworks
-                body: {}  
-            });
+            const res = await BookingService.checkCompletedBookings(session.user.access_token);
             
             if (res?.data?.success) {
                 message.success('Đã cập nhật trạng thái booking thành công');
@@ -181,14 +165,16 @@ const BookingTable = (props: IProps) => {
         [BookingStatus.PENDING]: 'orange',
         [BookingStatus.CONFIRMED]: 'green',
         [BookingStatus.CANCELED]: 'red',
-        [BookingStatus.COMPLETED]: 'blue'
+        [BookingStatus.COMPLETED]: 'blue',
+        [BookingStatus.EXPIRED]: 'volcano'
     };
 
     const bookingStatusLabels = {
         [BookingStatus.PENDING]: 'Chờ xác nhận',
         [BookingStatus.CONFIRMED]: 'Đã xác nhận',
         [BookingStatus.CANCELED]: 'Đã hủy',
-        [BookingStatus.COMPLETED]: 'Hoàn thành'
+        [BookingStatus.COMPLETED]: 'Hoàn thành',
+        [BookingStatus.EXPIRED]: 'Hết hạn'
     };
 
     const paymentStatusColors = {
@@ -196,7 +182,8 @@ const BookingTable = (props: IProps) => {
         [PaymentStatus.PAID]: 'green',
         [PaymentStatus.PARTIALLY_PAID]: 'blue',
         [PaymentStatus.FAILED]: 'red',
-        [PaymentStatus.REFUNDED]: 'purple'
+        [PaymentStatus.REFUNDED]: 'purple',
+        [PaymentStatus.EXPIRED]: 'volcano'
     };
 
     const paymentStatusLabels = {
@@ -204,7 +191,8 @@ const BookingTable = (props: IProps) => {
         [PaymentStatus.PAID]: 'Đã thanh toán',
         [PaymentStatus.PARTIALLY_PAID]: 'Thanh toán một phần',
         [PaymentStatus.FAILED]: 'Thanh toán thất bại',
-        [PaymentStatus.REFUNDED]: 'Đã hoàn tiền'
+        [PaymentStatus.REFUNDED]: 'Đã hoàn tiền',
+        [PaymentStatus.EXPIRED]: 'Hết hạn thanh toán'
     };
 
     const depositStatusLabels = {

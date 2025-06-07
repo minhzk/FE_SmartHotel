@@ -2,9 +2,9 @@
 
 import { Button, Calendar, Modal, Select, Tooltip, Tag, message } from "antd";
 import { useEffect, useState } from "react";
-import { sendRequest } from "@/utils/api";
+import { useSession } from "next-auth/react";
 import { handleGenerateRoomAvailabilityAction, handleUpdateRoomAvailabilityStatusAction } from "@/utils/actions";
-import { auth } from "@/auth";
+import { RoomAvailabilityService } from "@/services/room-availability.service";
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
 
@@ -19,6 +19,7 @@ const RoomAvailability = ({ isModalOpen, setIsModalOpen, room }: IRoomAvailabili
     const [loading, setLoading] = useState<boolean>(false);
     const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
     const [selectedStatus, setSelectedStatus] = useState<string>('available');
+    const { data: session } = useSession();
 
     useEffect(() => {
         if (isModalOpen && room?._id) {
@@ -27,26 +28,22 @@ const RoomAvailability = ({ isModalOpen, setIsModalOpen, room }: IRoomAvailabili
     }, [isModalOpen, room]);
 
     const fetchAvailabilityData = async () => {
-        if (!room?._id) return;
+        if (!room?._id || !session?.user?.access_token) return;
         
         setLoading(true);
         try {
             const startDate = dayjs().startOf('month').format('YYYY-MM-DD');
             const endDate = dayjs().endOf('month').add(2, 'month').format('YYYY-MM-DD');
             
-            const session = await auth();
-            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/room-availability/room/${room._id}/date-range?startDate=${startDate}&endDate=${endDate}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${session?.user?.access_token}`,
-                }
-            });
+            console.log('Fetching room availability for:', room._id, 'from', startDate, 'to', endDate);
             
-            if (!res.ok) {
-                throw await res.json();
-            }
+            const data = await RoomAvailabilityService.getRoomAvailabilityByDateRange(
+                room._id, 
+                startDate, 
+                endDate, 
+                session.user.access_token
+            );
             
-            const data = await res.json();
             if (data?.data) {
                 setAvailabilityData(data.data);
             }
@@ -69,6 +66,8 @@ const RoomAvailability = ({ isModalOpen, setIsModalOpen, room }: IRoomAvailabili
         
         try {
             setLoading(true);
+
+            console.log('updating room availability for:', room._id, 'on', selectedDate.format('YYYY-MM-DD'), 'to', selectedStatus);
             
             await handleUpdateRoomAvailabilityStatusAction({
                 roomId: room._id,
@@ -115,32 +114,38 @@ const RoomAvailability = ({ isModalOpen, setIsModalOpen, room }: IRoomAvailabili
 
     const dateCellRender = (date: Dayjs) => {
         const dateStr = date.format('YYYY-MM-DD');
-        const dateData = availabilityData.find(item => 
-            dayjs(item.date).format('YYYY-MM-DD') === dateStr
-        );
+        const dateData = availabilityData.find(item => {
+            // Use start_date instead of date field
+            const itemDateStr = dayjs(item.start_date).format('YYYY-MM-DD');
+            return itemDateStr === dateStr;
+        });
         
         if (!dateData) return null;
         
         let color;
+        let label;
         switch (dateData.status) {
             case 'available':
                 color = 'green';
+                label = 'Trống';
                 break;
             case 'booked':
                 color = 'red';
+                label = 'Đã đặt';
                 break;
             case 'maintenance':
                 color = 'orange';
+                label = 'Bảo trì';
                 break;
             default:
                 color = 'default';
+                label = dateData.status;
         }
         
         return (
             <div className="date-cell">
-                <Tag color={color}>
-                    {dateData.status === 'available' ? 'Trống' : 
-                     dateData.status === 'booked' ? 'Đã đặt' : 'Bảo trì'}
+                <Tag color={color} size="small">
+                    {label}
                 </Tag>
             </div>
         );

@@ -4,7 +4,8 @@ import { Button, Descriptions, Divider, Modal, Space, Tag, Typography, message }
 import dayjs from "dayjs";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { sendRequest } from "@/utils/api";
+import { HotelService } from "@/services/hotel.service";
+import { RoomService } from "@/services/room.service";
 import BookingUpdate from "./booking.update";
 
 const { Title, Text } = Typography;
@@ -60,13 +61,7 @@ const BookingDetail = (props: IProps) => {
                 if (!booking.hotel_id) return;
                 
                 try {
-                    const res = await sendRequest({
-                        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/hotels/${booking.hotel_id}`,
-                        method: 'GET',
-                        headers: {
-                            'Authorization': `Bearer ${session.user.access_token}`
-                        }
-                    });
+                    const res = await HotelService.getHotelById(booking.hotel_id, session.user.access_token);
                     
                     if (res?.data) {
                         setHotelDetail({ name: res.data.name });
@@ -80,13 +75,7 @@ const BookingDetail = (props: IProps) => {
                 if (!booking.room_id) return;
                 
                 try {
-                    const res = await sendRequest({
-                        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/rooms/${booking.room_id}`,
-                        method: 'GET',
-                        headers: {
-                            'Authorization': `Bearer ${session.user.access_token}`
-                        }
-                    });
+                    const res = await RoomService.getRoomById(booking.room_id, session.user.access_token);
                     
                     if (res?.data) {
                         setRoomDetail({ name: res.data.name || res.data.room_type || 'Phòng' });

@@ -8,7 +8,7 @@ import {
     UserOutlined,
 } from '@ant-design/icons';
 import { useState } from 'react';
-import { sendRequest } from '@/utils/api';
+import { AuthService } from '@/services/auth.service';
 
 const ModalReactive = (props: any) => {
     const { isModalOpen, setIsModalOpen, userEmail } = props;
@@ -19,43 +19,50 @@ const ModalReactive = (props: any) => {
     if (!hasMounted) return <></>;
 
     const onFinishStep0 = async (values: any) => {
-        const {email} = values
-        const res = await sendRequest<IBackendRes<IRegister>>({
-            url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/retry-active`,
-            method: 'POST',
-            body: {
-                email
-            }
-        })
+        const { email } = values;
+        
+        try {
+            const res = await AuthService.retryActive({ email });
 
-        if(res?.data) {
-            setUserId(res?.data?._id)
-            setCurrent(1)
-        } else {
+            if (res?.data) {
+                setUserId(res?.data?._id);
+                setCurrent(1);
+            } else {
+                notification.error({
+                    message: 'Resend code error',
+                    description: res?.message
+                });
+            }
+        } catch (error) {
             notification.error({
-                message: 'Resend code error',
-                description: res?.message
-            })
+                message: 'Network error',
+                description: 'Có lỗi xảy ra khi gửi lại mã kích hoạt'
+            });
         }
     }
 
     const onFinishStep1 = async (values: any) => {
-        const {code} = values
-        const res = await sendRequest<IBackendRes<any>>({
-            url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/check-code`,
-            method: 'POST',
-            body: {
-                _id: userId, code
-            }
-        })
+        const { code } = values;
+        
+        try {
+            const res = await AuthService.checkCode({
+                _id: userId,
+                code
+            });
 
-        if(res?.data) {
-            setCurrent(2)
-        } else {
+            if (res?.data) {
+                setCurrent(2);
+            } else {
+                notification.error({
+                    message: 'Account active error',
+                    description: res?.message
+                });
+            }
+        } catch (error) {
             notification.error({
-                message: 'Account active error',
-                description: res?.message
-            })
+                message: 'Network error',
+                description: 'Có lỗi xảy ra khi kích hoạt tài khoản'
+            });
         }
     }
     return (

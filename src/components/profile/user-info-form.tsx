@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Form, Input, Button, message, Descriptions, Typography } from 'antd';
 import { EditOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons';
-import { sendRequest } from '@/utils/api';
+import { UserService } from '@/services/user.service';
 import { useSession } from 'next-auth/react';
 
 const { Text } = Typography;
@@ -23,18 +23,14 @@ const UserInfoForm = ({ userProfile, session, onProfileUpdated }: UserInfoFormPr
   const handleSubmit = async (values: any) => {
     try {
       setIsSubmitting(true);
-      const response = await sendRequest<IBackendRes<any>>({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/users`,
-        method: 'PATCH',
-        body: {
-            _id: userProfile._id,
-            name: values.name,
-            phone: values.phone,
+      const response = await UserService.updateUser(
+        {
+          _id: userProfile._id,
+          name: values.name,
+          phone: values.phone,
         },
-        headers: {
-          Authorization: `Bearer ${session?.user?.access_token}`,
-        },
-      });
+        session?.user?.access_token
+      );
       
       if (response?.data) {
         // Cập nhật session (nếu cần)

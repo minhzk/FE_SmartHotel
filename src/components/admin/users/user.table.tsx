@@ -5,12 +5,12 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from "react";
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
-import { sendRequest } from "@/utils/api";
 import { useSession } from "next-auth/react";
 import UserDetail from "./user.detail";
 import UserCreate from "./user.create";
 import UserUpdate from "./user.update";
 import { handleDeleteUserAction } from "@/utils/actions";
+import { UserService } from "@/services/user.service";
 
 interface IProps {
     users: any[];
@@ -87,14 +87,7 @@ const UserTable = (props: IProps) => {
             // Search term
             if (searchParams.has('search')) queryParams.search = searchParams.get('search');
 
-            const res = await sendRequest({
-                url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/users`,
-                method: 'GET',
-                queryParams: queryParams,
-                headers: {
-                    'Authorization': `Bearer ${session.user.access_token}`
-                }
-            });
+            const res = await UserService.getUsers(queryParams, session.user.access_token);
 
             if (res?.data) {
                 setUsers(res.data.results || []);

@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import { useState, useEffect } from "react";
 import { sendRequest } from "@/utils/api";
 import { useSession } from "next-auth/react";
-import { UserOutlined, WalletOutlined, ShoppingOutlined } from '@ant-design/icons';
+import { UserOutlined, WalletOutlined, ShoppingOutlined, ClockCircleOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
@@ -138,6 +138,24 @@ const UserDetail = (props: IProps) => {
     // Lấy tên khách sạn từ hotel_id
     const getHotelName = (hotelId: string) => {
         return hotelDetails[hotelId]?.name || 'N/A';
+    };
+
+    // Helper function to render booking status
+    const renderBookingStatus = (status: string) => {
+        switch (status) {
+            case 'pending':
+                return <Tag icon={<ClockCircleOutlined />} color="orange">Chờ xác nhận</Tag>;
+            case 'confirmed':
+                return <Tag icon={<CheckCircleOutlined />} color="green">Đã xác nhận</Tag>;
+            case 'canceled':
+                return <Tag icon={<CloseCircleOutlined />} color="red">Đã hủy</Tag>;
+            case 'completed':
+                return <Tag icon={<CheckCircleOutlined />} color="blue">Hoàn thành</Tag>;
+            case 'expired':
+                return <Tag icon={<CloseCircleOutlined />} color="volcano">Hết hạn</Tag>;
+            default:
+                return <Tag>{status}</Tag>;
+        }
     };
 
     // Render transactions table if available
@@ -281,16 +299,7 @@ const UserDetail = (props: IProps) => {
                                     <div>
                                         <div><strong>Số tiền:</strong> {booking.total_amount?.toLocaleString('vi-VN')} VNĐ</div>
                                         <div>
-                                            <Tag color={
-                                                booking.status === 'confirmed' ? 'green' :
-                                                booking.status === 'pending' ? 'orange' :
-                                                booking.status === 'canceled' ? 'red' : 'blue'
-                                            }>
-                                                {booking.status === 'confirmed' ? 'Đã xác nhận' :
-                                                booking.status === 'pending' ? 'Chờ xác nhận' :
-                                                booking.status === 'canceled' ? 'Đã hủy' :
-                                                booking.status === 'completed' ? 'Hoàn thành' : booking.status}
-                                            </Tag>
+                                            {renderBookingStatus(booking.status)}
                                         </div>
                                     </div>
                                 </div>

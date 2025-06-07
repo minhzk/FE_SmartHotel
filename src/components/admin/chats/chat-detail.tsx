@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Timeline, Typography, Spin, Tag, Badge, Card, Divider } from 'antd';
 import { UserOutlined, RobotOutlined } from '@ant-design/icons';
 import { useSession } from 'next-auth/react';
-import { sendRequest } from '@/utils/api';
+import { ChatService } from '@/services/chat.service';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -49,13 +49,10 @@ const ChatDetail: React.FC<ChatDetailProps> = ({ session, visible, onClose }) =>
     try {
       setLoading(true);
       
-      const response = await sendRequest({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/chatbot/sessions/${session.session_id}/messages`,
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${authSession?.user?.access_token}`,
-        },
-      });
+      const response = await ChatService.getSessionMessages(
+        session.session_id,
+        authSession?.user?.access_token!
+      );
       
       if (response?.data?.messages) {
         setMessages(response.data.messages);

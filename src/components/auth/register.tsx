@@ -3,29 +3,33 @@ import React from 'react';
 import { Button, Col, Divider, Form, Input, notification, Row } from 'antd';
 import { ArrowLeftOutlined, GoogleOutlined } from '@ant-design/icons';
 import Link from 'next/link';
-import { sendRequest } from '@/utils/api';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import { AuthService } from '@/services/auth.service';
 
 const Register = () => {
     const router = useRouter()
+    
     const onFinish = async (values: any) => {
-        const {email, password, name} = values
-        const res = await sendRequest<IBackendRes<IRegister>>({
-            url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/register`,
-            method: 'POST',
-            body: {
-                email, password, name
+        const { email, password, name } = values;
+        
+        try {
+            const res = await AuthService.register({ email, password, name });
+            
+            console.log(">>> check res: ", res);
+            if (res?.data) {
+                router.push(`/verify/${res?.data?._id}`);
+            } else {
+                notification.error({
+                    message: 'Register error',
+                    description: res?.message
+                });
             }
-        })
-        console.log(">>> check res: ", res)
-        if (res?.data) {
-            router.push(`/verify/${res?.data?._id}`)
-        } else {
+        } catch (error) {
             notification.error({
-                message: 'Register error',
-                description: res?.message
-            })
+                message: 'Network error',
+                description: 'Có lỗi xảy ra khi đăng ký tài khoản'
+            });
         }
     };
 

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Tabs, Card, Typography, Spin, Avatar } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { sendRequest } from '@/utils/api';
+import { UserService } from '@/services/user.service';
 import UserInfoForm from './user-info-form';
 import ChangePasswordForm from './change-password-form';
 
@@ -21,13 +21,7 @@ const ProfileComponent = ({ session }: IProfileComponentProps) => {
   const fetchUserProfile = async () => {
     try {
       setLoading(true);
-      const response = await sendRequest<IBackendRes<any>>({
-        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/users/me`,
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${session?.user?.access_token}`,
-        },
-      });
+      const response = await UserService.getCurrentUser(session?.user?.access_token);
       
       if (response?.data) {
         console.log('User profile fetched:', response.data);

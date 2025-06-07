@@ -28,8 +28,7 @@ const UserUpdate = (props: IProps) => {
                 email: dataUpdate.email,
                 phone: dataUpdate.phone,
                 role: dataUpdate.role,
-                isActive: dataUpdate.isActive,
-                account_balance: dataUpdate.account_balance || 0
+                isActive: dataUpdate.isActive
             });
         }
     }, [dataUpdate]);
@@ -43,9 +42,9 @@ const UserUpdate = (props: IProps) => {
     const onFinish = async (values: any) => {
         if (dataUpdate) {
             try {
-                const { name, phone, role, isActive, account_balance } = values;
+                const { name, phone, role, isActive } = values;
                 const res = await handleUpdateUserAction({
-                    _id: dataUpdate._id, name, phone, role, isActive, account_balance
+                    _id: dataUpdate._id, name, phone, role, isActive
                 });
                 
                 if (res?.data) {
@@ -136,20 +135,6 @@ const UserUpdate = (props: IProps) => {
                             <Switch 
                                 checkedChildren="Hoạt động" 
                                 unCheckedChildren="Không hoạt động" 
-                            />
-                        </Form.Item>
-                    </Col>
-
-                    <Col span={24}>
-                        <Form.Item
-                            label="Số dư tài khoản (VNĐ)"
-                            name="account_balance"
-                        >
-                            <InputNumber 
-                                style={{ width: '100%' }}
-                                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                                parser={(value) => value!.replace(/\$\s?|(,*)/g, '')}
-                                min={0}
                             />
                         </Form.Item>
                     </Col>

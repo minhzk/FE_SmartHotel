@@ -3,30 +3,34 @@ import React from 'react';
 import { Button, Col, Divider, Form, Input, message, notification, Row } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import Link from 'next/link';
-import { sendRequest } from '@/utils/api';
 import { useRouter } from 'next/navigation';
+import { AuthService } from '@/services/auth.service';
 
 const Verify = (props: any) => {
     const {id} = props;
     const router = useRouter()
+    
     const onFinish = async (values: any) => {
         const {_id, code} = values
-        const res = await sendRequest<IBackendRes<any>>({
-            url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/check-code`,
-            method: 'POST',
-            body: {
-                _id, code
+        
+        try {
+            const res = await AuthService.checkCode({ _id, code });
+            
+            console.log(">>> check res: ", res)
+            if (res?.data) {
+                message.success("Account activated")
+                router.push(`/auth/login`)
+            } else {
+                notification.error({
+                    message: 'Verify error',
+                    description: res?.message
+                })
             }
-        })
-        console.log(">>> check res: ", res)
-        if (res?.data) {
-            message.success("Account activated")
-            router.push(`/auth/login`)
-        } else {
+        } catch (error) {
             notification.error({
-                message: 'Verify error',
-                description: res?.message
-            })
+                message: 'Network error',
+                description: 'Có lỗi xảy ra khi xác thực tài khoản'
+            });
         }
     };
     return (

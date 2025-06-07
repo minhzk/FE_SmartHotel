@@ -5,7 +5,7 @@ import { InfoCircleOutlined, PlusOutlined, LoadingOutlined } from "@ant-design/i
 import { Button, Col, Form, Input, InputNumber, Modal, Row, Select, Switch, Tooltip, Upload, message } from "antd";
 import { useState } from "react";
 import type { RcFile, UploadFile, UploadProps } from 'antd/es/upload/interface';
-import { sendRequest } from "@/utils/api";
+import { UploadService } from "@/services/upload.service";
 import { HOTEL_AMENITIES } from "@/constants/hotel.constants";
 
 // Thêm định nghĩa interface cho file upload với cloudinary_id
@@ -103,14 +103,7 @@ const HotelCreate = (props: IProps) => {
             
             console.log('Uploading file to Cloudinary:', file.name);
             
-            const res = await sendRequest<IBackendRes<any>>({
-                url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/uploads/base64`,
-                method: 'POST',
-                body: {
-                    base64Image: base64,
-                    description: file.name,
-                }
-            });
+            const res = await UploadService.uploadBase64Image(base64, file.name);
             
             console.log('Cloudinary response:', res?.data);
             
