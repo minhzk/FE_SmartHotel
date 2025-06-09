@@ -176,7 +176,7 @@ const BookingList: React.FC<BookingListProps> = ({ session }) => {
     try {
       console.log('Fetching user reviews with token:', session.user.access_token);
       
-      const res = await ReviewService.getUserReviews(session.user.access_token);
+      const res = await ReviewService.getUserReviews({}, session.user.access_token);
 
       console.log('User reviews API response:', res?.data);
 
