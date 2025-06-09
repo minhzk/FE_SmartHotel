@@ -69,14 +69,16 @@ const HotelCard: React.FC<IHotelCardProps> = ({ hotel, session }) => {
               </div>
             )}
             
-            {/* Thêm nút yêu thích */}
-            <div className="favorite-button-container">
-              <FavoriteButton 
-                hotelId={hotel._id} 
-                session={session} 
-                style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
-              />
-            </div>
+            {/* Thêm nút yêu thích - chỉ hiển thị khi đã đăng nhập */}
+            {session?.user && (
+              <div className="favorite-button-container">
+                <FavoriteButton 
+                  hotelId={hotel._id} 
+                  session={session} 
+                  style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+                />
+              </div>
+            )}
           </div>
         </Col>
         

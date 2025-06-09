@@ -90,7 +90,9 @@ const HotelDetail: React.FC<HotelDetailProps> = ({ hotel, rooms, reviews, sessio
         <div className="hotel-header">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <Title level={2}>{hotel.name}</Title>
-            <FavoriteButton hotelId={hotel._id} session={session} size="large" />
+            {session?.user && (
+              <FavoriteButton hotelId={hotel._id} session={session} size="large" />
+            )}
           </div>
           <div className="hotel-rating">
             <Rate disabled defaultValue={totalRating} />
@@ -181,13 +183,13 @@ const HotelDetail: React.FC<HotelDetailProps> = ({ hotel, rooms, reviews, sessio
                     <Divider />
                     
                     <Title level={4}>Thông tin hữu ích</Title>
-                    <Descriptions column={{ xs: 1, sm: 2 }} bordered>
+                    <Descriptions column={2} bordered>
                       <Descriptions.Item label="Check-in">14:00</Descriptions.Item>
                       <Descriptions.Item label="Check-out">12:00</Descriptions.Item>
                       <Descriptions.Item label="Đặt cọc">
                         {hotel.accept_deposit ? 'Có' : 'Không'}
                       </Descriptions.Item>
-                      <Descriptions.Item label="Sức chứa tối đa" >
+                      <Descriptions.Item label="Sức chứa tối đa">
                         {hotel.max_capacity || 'Không giới hạn'} người
                       </Descriptions.Item>
                     </Descriptions>
