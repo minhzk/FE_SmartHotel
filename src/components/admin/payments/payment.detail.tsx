@@ -3,6 +3,8 @@ import { Button, Descriptions, Divider, Modal, Skeleton, Space, Tag, Typography 
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { BookingService } from "@/services/booking.service";
+import { HotelService } from "@/services/hotel.service";
+import { RoomService } from "@/services/room.service";
 import { useSession } from "next-auth/react";
 
 const { Title, Text } = Typography;
@@ -16,6 +18,8 @@ interface IProps {
 const PaymentDetail = (props: IProps) => {
     const { isDetailModalOpen, setIsDetailModalOpen, payment } = props;
     const [bookingDetails, setBookingDetails] = useState<any>(null);
+    const [hotelDetails, setHotelDetails] = useState<any>(null);
+    const [roomDetails, setRoomDetails] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const { data: session } = useSession();
 
@@ -29,6 +33,22 @@ const PaymentDetail = (props: IProps) => {
                 
                 if (res?.data) {
                     setBookingDetails(res.data);
+                    
+                    // Fetch hotel details
+                    if (res.data.hotel_id) {
+                        const hotelRes = await HotelService.getHotelById(res.data.hotel_id, session?.user?.access_token!);
+                        if (hotelRes?.data) {
+                            setHotelDetails(hotelRes.data);
+                        }
+                    }
+                    
+                    // Fetch room details
+                    if (res.data.room_id) {
+                        const roomRes = await RoomService.getRoomById(res.data.room_id, session?.user?.access_token!);
+                        if (roomRes?.data) {
+                            setRoomDetails(roomRes.data);
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching booking details:', error);
@@ -41,6 +61,8 @@ const PaymentDetail = (props: IProps) => {
             fetchBookingDetails();
         } else {
             setBookingDetails(null);
+            setHotelDetails(null);
+            setRoomDetails(null);
         }
     }, [payment, isDetailModalOpen, session]);
 
@@ -168,10 +190,10 @@ const PaymentDetail = (props: IProps) => {
             ) : bookingDetails ? (
                 <Descriptions bordered column={2}>
                     <Descriptions.Item label="Khách sạn" span={2}>
-                        {bookingDetails.hotel_name || 'N/A'}
+                        {hotelDetails?.name || 'Đang tải...'}
                     </Descriptions.Item>
                     <Descriptions.Item label="Loại phòng" span={2}>
-                        {bookingDetails.room_name || bookingDetails.room_type || 'N/A'}
+                        {roomDetails?.name || 'Đang tải...'}
                     </Descriptions.Item>
                     <Descriptions.Item label="Ngày nhận phòng">
                         {bookingDetails.check_in_date ? 
@@ -182,19 +204,27 @@ const PaymentDetail = (props: IProps) => {
                             dayjs(bookingDetails.check_out_date).format('DD/MM/YYYY') : 'N/A'}
                     </Descriptions.Item>
                     <Descriptions.Item label="Số đêm">
-                        {bookingDetails.nights || 
-                            (bookingDetails.check_in_date && bookingDetails.check_out_date ? 
-                                dayjs(bookingDetails.check_out_date).diff(dayjs(bookingDetails.check_in_date), 'day') : 'N/A')}
+                        {bookingDetails.check_in_date && bookingDetails.check_out_date ? 
+                            (() => {
+                                const checkIn = dayjs(bookingDetails.check_in_date).startOf('day');
+                                const checkOut = dayjs(bookingDetails.check_out_date).startOf('day');
+                                const nights = checkOut.diff(checkIn, 'day');
+                                return `${nights} đêm`;
+                            })() : 'N/A'}
                     </Descriptions.Item>
                     <Descriptions.Item label="Trạng thái đặt phòng">
                         <Tag color={
                             bookingDetails.status === 'confirmed' ? 'green' :
                             bookingDetails.status === 'pending' ? 'orange' :
-                            bookingDetails.status === 'canceled' ? 'red' : 'default'
+                            bookingDetails.status === 'canceled' ? 'red' :
+                            bookingDetails.status === 'completed' ? 'blue' :
+                            bookingDetails.status === 'expired' ? 'volcano' : 'default'
                         }>
                             {bookingDetails.status === 'confirmed' ? 'Đã xác nhận' :
                             bookingDetails.status === 'pending' ? 'Chờ xác nhận' :
-                            bookingDetails.status === 'canceled' ? 'Đã hủy' : bookingDetails.status}
+                            bookingDetails.status === 'canceled' ? 'Đã hủy' :
+                            bookingDetails.status === 'completed' ? 'Hoàn thành' :
+                            bookingDetails.status === 'expired' ? 'Hết hạn' : bookingDetails.status}
                         </Tag>
                     </Descriptions.Item>
                     <Descriptions.Item label="Người đặt" span={2}>
