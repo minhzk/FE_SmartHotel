@@ -3,7 +3,7 @@ import { Button, Col, Divider, Form, Input, notification, Row } from 'antd';
 import { ArrowLeftOutlined, GoogleOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import { authenticate } from '@/utils/actions';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import ModalReactive from './modal.reactive';
 import { useState } from 'react';
 import ModalChangePassword from './modal.change.password';
@@ -11,6 +11,8 @@ import { signIn } from 'next-auth/react';
 
 const Login = () => {
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const callbackUrl = searchParams.get('callbackUrl') || '/'
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [userEmail, setUserEmail] = useState("")
     const [changePassword, setChangePassword] = useState(false);
@@ -38,15 +40,15 @@ const Login = () => {
                 description: errorMessages[res.code] || res.error
             })
         } else {
-            // redirect to dashboard
-            router.push('/')
+            // Force a full page reload to ensure session is available
+            window.location.href = callbackUrl
         }
     };
 
     const handleGoogleLogin = async () => {
         try {
             await signIn('google', { 
-                callbackUrl: '/',
+                callbackUrl: callbackUrl,
                 redirect: true 
             });
         } catch (error) {

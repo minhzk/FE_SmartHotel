@@ -46,7 +46,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   const toggleFavorite = async () => {
     if (!session) {
       message.info('Vui lòng đăng nhập để thêm khách sạn vào danh sách yêu thích');
-      router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.pathname));
+      router.push('/auth/login?callbackUrl=' + encodeURIComponent(window.location.pathname));
       return;
     }
 

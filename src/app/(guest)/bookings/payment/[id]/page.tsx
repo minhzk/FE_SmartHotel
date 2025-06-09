@@ -19,7 +19,7 @@ export default async function PaymentPage({
   if (!session) {
     const callbackUrl = `/bookings/payment/${params.id}`;
     const queryParams = paymentType ? `?type=${paymentType}` : '';
-    redirect('/auth/signin?callbackUrl=' + encodeURIComponent(`${callbackUrl}${queryParams}`));
+    redirect('/auth/login?callbackUrl=' + encodeURIComponent(`${callbackUrl}${queryParams}`));
   }
   
   // Fetch booking details

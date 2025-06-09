@@ -7,7 +7,7 @@ export default async function FavoritesPage() {
   
   // Yêu cầu đăng nhập để xem trang yêu thích
   if (!session) {
-    redirect('/auth/signin?callbackUrl=/favorites');
+    redirect('/auth/login?callbackUrl=/favorites');
   }
   
   return (

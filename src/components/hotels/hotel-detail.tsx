@@ -49,7 +49,7 @@ const HotelDetail: React.FC<HotelDetailProps> = ({ hotel, rooms, reviews, sessio
   const handleBookRoom = async (room: any) => {
     if (!session) {
       // Redirect to login if not authenticated
-      router.push('/auth/signin?callbackUrl=' + encodeURIComponent(`/hotels/${hotel._id}`));
+      router.push('/auth/login?callbackUrl=' + encodeURIComponent(`/hotels/${hotel._id}`));
       return;
     }
     
@@ -187,10 +187,7 @@ const HotelDetail: React.FC<HotelDetailProps> = ({ hotel, rooms, reviews, sessio
                       <Descriptions.Item label="Đặt cọc">
                         {hotel.accept_deposit ? 'Có' : 'Không'}
                       </Descriptions.Item>
-                      <Descriptions.Item label="Xây dựng năm">
-                        {hotel.built_year || 'N/A'}
-                      </Descriptions.Item>
-                      <Descriptions.Item label="Sức chứa tối đa" span={2}>
+                      <Descriptions.Item label="Sức chứa tối đa" >
                         {hotel.max_capacity || 'Không giới hạn'} người
                       </Descriptions.Item>
                     </Descriptions>

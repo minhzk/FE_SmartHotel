@@ -51,7 +51,7 @@ const HotelRooms: React.FC<RoomProps> = ({
 
   const showBookingModal = (room: any) => {
     if (!session) {
-      router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.href));
+      router.push('/auth/login?callbackUrl=' + encodeURIComponent(window.location.href));
       return;
     }
     
@@ -130,7 +130,7 @@ const HotelRooms: React.FC<RoomProps> = ({
       
       if (!session) {
         message.error('Vui lòng đăng nhập để đặt phòng');
-        router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.href));
+        router.push('/auth/login?callbackUrl=' + encodeURIComponent(window.location.href));
         return;
       }
       
