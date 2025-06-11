@@ -341,3 +341,32 @@ export const handleCheckFavoriteStatusAction = async (
         };
     }
 };
+
+export const handleCreateReviewAction = async (
+    data: {
+        hotel_id: string;
+        booking_id: string;
+        rating: number;
+        review_text: string;
+    },
+    accessToken: string
+) => {
+    try {
+        const res = await ReviewService.createReview(data, accessToken);
+
+        if (res?.data) {
+            return { success: true, data: res.data };
+        } else {
+            return { success: false, message: res?.message || 'Có lỗi xảy ra' };
+        }
+    } catch (error: any) {
+        console.error('Error creating review:', error);
+        return {
+            success: false,
+            message:
+                error?.response?.data?.message ||
+                error?.message ||
+                'Có lỗi xảy ra khi tạo đánh giá',
+        };
+    }
+};

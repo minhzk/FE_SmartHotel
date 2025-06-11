@@ -16,6 +16,7 @@ export interface UpdateReviewRequest {
 
 export interface CreateReviewRequest {
     hotel_id: string;
+    booking_id: string;
     rating: number;
     review_text: string;
 }

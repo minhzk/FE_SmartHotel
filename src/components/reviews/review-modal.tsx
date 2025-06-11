@@ -1,12 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Modal, Form, Input, Rate, Button, message, Typography } from 'antd';
-import { StarOutlined } from '@ant-design/icons';
-import { ReviewService } from '@/services/review.service';
+import { Modal, Form, Rate, Input, Button, message } from 'antd';
+import { handleCreateReviewAction } from '@/utils/actions';
 
 const { TextArea } = Input;
-const { Title, Text } = Typography;
 
 interface ReviewModalProps {
   booking: any;
@@ -21,107 +19,107 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
   visible,
   onClose,
   session,
-  onSuccess
+  onSuccess,
 }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  
-  // Mô tả cho các mức đánh giá sao
-  const ratingDescriptions = ['Rất tệ', 'Tệ', 'Bình thường', 'Tốt', 'Tuyệt vời'];
-  
-  const handleCancel = () => {
-    form.resetFields();
-    onClose();
-  };
-  
+
   const handleSubmit = async (values: any) => {
-    if (!session?.user?.access_token) {
-      message.error('Vui lòng đăng nhập để gửi đánh giá');
-      return;
-    }
-    
     setLoading(true);
-    
     try {
-      const payload = {
+      const reviewData = {
         hotel_id: booking.hotel_id,
+        booking_id: booking._id, // Sử dụng booking._id thay vì hotel_id
         rating: values.rating,
-        review_text: values.review_text
+        review_text: values.review_text,
       };
-      
-      await ReviewService.createReview(payload, session.user.access_token);
-      
-      message.success('Đánh giá của bạn đã được gửi thành công!');
-      form.resetFields();
-      onSuccess();
-    } catch (error: any) {
+
+      const result = await handleCreateReviewAction(
+        reviewData,
+        session?.user?.access_token
+      );
+
+      if (result.success) {
+        message.success('Đánh giá của bạn đã được gửi thành công!');
+        form.resetFields();
+        onSuccess();
+      } else {
+        message.error(result.message || 'Có lỗi xảy ra khi gửi đánh giá');
+      }
+    } catch (error) {
       console.error('Error submitting review:', error);
-      message.error(error?.response?.data?.message || 'Có lỗi xảy ra khi gửi đánh giá');
+      message.error('Có lỗi xảy ra khi gửi đánh giá');
     } finally {
       setLoading(false);
     }
   };
-  
+
+  const handleCancel = () => {
+    form.resetFields();
+    onClose();
+  };
+
   return (
     <Modal
-      title={
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <StarOutlined style={{ marginRight: 8, color: '#faad14' }} />
-          <span>Đánh giá dịch vụ</span>
-        </div>
-      }
+      title="Đánh giá khách sạn"
       open={visible}
       onCancel={handleCancel}
       footer={null}
-      destroyOnClose
+      width={600}
     >
-      <div style={{ marginBottom: 16 }}>
-        <Title level={5}>Khách sạn: {booking.hotel_name}</Title>
-        <Text type="secondary">Mã đặt phòng: {booking.booking_id}</Text>
-      </div>
-      
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleSubmit}
-        initialValues={{ rating: 5 }}
-      >
-        <Form.Item
-          name="rating"
-          label="Đánh giá của bạn"
-          rules={[{ required: true, message: 'Vui lòng chọn số sao đánh giá!' }]}
-        >
-          <Rate 
-            tooltips={ratingDescriptions}
-            allowClear={false}
-          />
-        </Form.Item>
-        
-        <Form.Item
-          name="review_text"
-          label="Nhận xét của bạn"
-          rules={[
-            { required: true, message: 'Vui lòng nhập nhận xét của bạn!' },
-            { min: 10, message: 'Nhận xét cần có ít nhất 10 ký tự!' }
-          ]}
-        >
-          <TextArea
-            rows={4}
-            placeholder="Chia sẻ trải nghiệm của bạn về khách sạn, dịch vụ, vị trí..."
-            maxLength={500}
-            showCount
-          />
-        </Form.Item>
-        
-        <div style={{ textAlign: 'right' }}>
-          <Button onClick={handleCancel} style={{ marginRight: 8 }} disabled={loading}>
-            Hủy bỏ
-          </Button>
-          <Button type="primary" htmlType="submit" loading={loading}>
-            Gửi đánh giá
-          </Button>
+      {booking && (
+        <div>
+          <div style={{ marginBottom: 16 }}>
+            <h4>{booking.hotel_name}</h4>
+            <p>Mã đặt phòng: {booking.booking_id}</p>
+            <p>Phòng: {booking.room_name}</p>
+          </div>
+
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleSubmit}
+            initialValues={{
+              rating: 5,
+            }}
+          >
+            <Form.Item
+              name="rating"
+              label="Đánh giá của bạn"
+              rules={[
+                { required: true, message: 'Vui lòng chọn số sao đánh giá' },
+              ]}
+            >
+              <Rate style={{ fontSize: 24 }} />
+            </Form.Item>
+
+            <Form.Item
+              name="review_text"
+              label="Nhận xét của bạn"
+              rules={[
+                { required: true, message: 'Vui lòng nhập nhận xét của bạn' },
+                { min: 10, message: 'Nhận xét phải có ít nhất 10 ký tự' },
+              ]}
+            >
+              <TextArea
+                rows={4}
+                placeholder="Chia sẻ trải nghiệm của bạn về khách sạn..."
+                maxLength={1000}
+                showCount
+              />
+            </Form.Item>
+
+            <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+              <Button onClick={handleCancel} style={{ marginRight: 8 }}>
+                Hủy
+              </Button>
+              <Button type="primary" htmlType="submit" loading={loading}>
+                Gửi đánh giá
+              </Button>
+            </Form.Item>
+          </Form>
         </div>
-      </Form>
+      )}
     </Modal>
   );
 };

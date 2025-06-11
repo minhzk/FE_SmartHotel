@@ -272,6 +272,16 @@ const ReviewTable = (props: IProps) => {
             }
         },
         {
+            title: 'Mã booking',
+            dataIndex: 'booking_id',
+            key: 'booking_id',
+            render: (bookingId: string) => {
+                // Hiển thị booking_id nếu là string, hoặc booking_id từ object nếu được populate
+                const id = typeof bookingId === 'object' && bookingId ;
+                return id || 'N/A';
+            }
+        },
+        {
             title: 'Thao tác',
             key: 'action',
             render: (_, record) => (
