@@ -79,7 +79,7 @@ const ReviewDetail = (props: IProps) => {
                     )}
                     {review.sentiment !== undefined && (
                         <div style={{ marginTop: 5 }}>
-                            <Progress percent={Math.round(review.sentiment * 5)} size="small" />
+                            <Progress percent={Math.round(review.sentiment * 20)} size="small" />
                         </div>
                     )}
                 </Descriptions.Item>
