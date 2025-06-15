@@ -77,21 +77,25 @@ const HotelRooms: React.FC<RoomProps> = ({
     
     setIsBookingModalOpen(true);
     
-    // Check room availability for selected dates
-    checkRoomAvailability(room._id, defaultStartDate, defaultEndDate);
+    // Check room availability for selected dates - TRUYỀN room thay vì bookingRoom
+    checkRoomAvailability(room._id, defaultStartDate, defaultEndDate, room);
   };
   
-  const checkRoomAvailability = async (roomId: string, startDate: dayjs.Dayjs, endDate: dayjs.Dayjs) => {
+  const checkRoomAvailability = async (roomId: string, startDate: dayjs.Dayjs, endDate: dayjs.Dayjs, currentRoom?: any) => {
     if (!roomId || !startDate || !endDate) return;
+
+    // Sử dụng currentRoom hoặc bookingRoom hiện tại
+    const room = currentRoom || bookingRoom;
+    if (!room) return;
 
     setCheckingAvailability(true);
     try {
-      console.log('bookingRoom price:', bookingRoom?.price_per_night);
+      console.log('Room price:', room.price_per_night);
       const response = await RoomAvailabilityService.checkRoomDates(
         roomId,
         startDate.format('YYYY-MM-DD'),
         endDate.format('YYYY-MM-DD'),
-        bookingRoom?.price_per_night || null
+        room.price_per_night || null
       );
 
       console.log('Room availability response:', response);
@@ -115,15 +119,14 @@ const HotelRooms: React.FC<RoomProps> = ({
           _override_price: response.data.override_price
         }));
       } else {
-        if (bookingRoom) {
-          const days = endDate.diff(startDate, 'day');
-          setTotalAmount(days * bookingRoom.price_per_night);
-          setBookingRoom((prev: any) => {
-            if (!prev) return prev;
-            const { _override_price, ...rest } = prev;
-            return rest;
-          });
-        }
+        // Sử dụng giá mặc định từ room
+        const days = endDate.diff(startDate, 'day');
+        setTotalAmount(days * room.price_per_night);
+        setBookingRoom((prev: any) => {
+          if (!prev) return prev;
+          const { _override_price, _prices_by_date, ...rest } = prev;
+          return rest;
+        });
       }
       // --- Kết thúc xử lý tổng giá ---
 
@@ -178,7 +181,8 @@ const HotelRooms: React.FC<RoomProps> = ({
         const availabilityCheck = await RoomAvailabilityService.checkRoomDates(
           bookingRoom._id,
           startDate.format('YYYY-MM-DD'),
-          endDate.format('YYYY-MM-DD')
+          endDate.format('YYYY-MM-DD'),
+          bookingRoom.price_per_night || null
         );
         
         if (!availabilityCheck?.data?.isAvailable) {
@@ -647,13 +651,13 @@ const HotelRooms: React.FC<RoomProps> = ({
                   <Text>Thời gian lưu trú: <strong>{nights} đêm</strong></Text>
                   <br />
                   {/* Hiển thị giá từng ngày nếu có _prices_by_date */}
-                  {bookingRoom && bookingRoom._prices_by_date ? (
+                  {bookingRoom && bookingRoom._prices_by_date && bookingRoom._prices_by_date.length > 0 ? (
                     <div>
                       <Text>Giá phòng từng ngày:</Text>
                       <ul style={{ margin: 0, paddingLeft: 18 }}>
                         {bookingRoom._prices_by_date.map((item: any, idx: number) => (
                           <li key={item.date}>
-                            {dayjs(item.date).format('DD/MM/YYYY')}: <strong>{formatPrice(item.price)}</strong>
+                            {dayjs(item.date).format('DD/MM/YYYY')}: <strong>{formatPrice(item?.price || 0)}</strong>
                           </li>
                         ))}
                       </ul>
@@ -663,7 +667,7 @@ const HotelRooms: React.FC<RoomProps> = ({
                       Giá phòng: <strong>
                         {bookingRoom && bookingRoom._override_price
                           ? formatPrice(bookingRoom._override_price)
-                          : formatPrice(bookingRoom.price_per_night)}
+                          : formatPrice(bookingRoom?.price_per_night || 0)}
                       </strong> / đêm
                     </Text>
                   )}
