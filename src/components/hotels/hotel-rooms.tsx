@@ -83,17 +83,50 @@ const HotelRooms: React.FC<RoomProps> = ({
   
   const checkRoomAvailability = async (roomId: string, startDate: dayjs.Dayjs, endDate: dayjs.Dayjs) => {
     if (!roomId || !startDate || !endDate) return;
-    
+
     setCheckingAvailability(true);
     try {
+      console.log('bookingRoom price:', bookingRoom?.price_per_night);
       const response = await RoomAvailabilityService.checkRoomDates(
         roomId,
         startDate.format('YYYY-MM-DD'),
-        endDate.format('YYYY-MM-DD')
+        endDate.format('YYYY-MM-DD'),
+        bookingRoom?.price_per_night || null
       );
-      
+
+      console.log('Room availability response:', response);
+
       setIsRoomAvailable(response?.data?.isAvailable || false);
-      
+
+      // --- Xử lý tổng giá theo từng ngày ---
+      if (response?.data?.prices_by_date && Array.isArray(response.data.prices_by_date)) {
+        const total = response.data.prices_by_date.reduce((sum: number, item: any) => sum + (item.price || 0), 0);
+        setTotalAmount(total);
+        setBookingRoom((prev: any) => ({
+          ...prev,
+          _prices_by_date: response.data.prices_by_date
+        }));
+      } else if (response?.data?.override_price) {
+        // fallback cho trường hợp cũ
+        const days = endDate.diff(startDate, 'day');
+        setTotalAmount(days * response.data.override_price);
+        setBookingRoom((prev: any) => ({
+          ...prev,
+          _override_price: response.data.override_price
+        }));
+      } else {
+        if (bookingRoom) {
+          const days = endDate.diff(startDate, 'day');
+          setTotalAmount(days * bookingRoom.price_per_night);
+          setBookingRoom((prev: any) => {
+            if (!prev) return prev;
+            const { _override_price, ...rest } = prev;
+            return rest;
+          });
+        }
+      }
+      // --- Kết thúc xử lý tổng giá ---
+
       if (!response?.data?.isAvailable) {
         message.warning('Phòng không khả dụng trong khoảng thời gian đã chọn!');
       }
@@ -114,10 +147,7 @@ const HotelRooms: React.FC<RoomProps> = ({
       setNights(days);
       
       if (bookingRoom) {
-        const newTotal = days * bookingRoom.price_per_night;
-        setTotalAmount(newTotal);
-        
-        // Check availability again when dates change
+        // Nếu có giá override thì sẽ được cập nhật trong checkRoomAvailability
         checkRoomAvailability(bookingRoom._id, start, end);
       }
     }
@@ -616,7 +646,27 @@ const HotelRooms: React.FC<RoomProps> = ({
                 <div className="booking-summary">
                   <Text>Thời gian lưu trú: <strong>{nights} đêm</strong></Text>
                   <br />
-                  <Text>Giá phòng: <strong>{formatPrice(bookingRoom.price_per_night)}</strong> / đêm</Text>
+                  {/* Hiển thị giá từng ngày nếu có _prices_by_date */}
+                  {bookingRoom && bookingRoom._prices_by_date ? (
+                    <div>
+                      <Text>Giá phòng từng ngày:</Text>
+                      <ul style={{ margin: 0, paddingLeft: 18 }}>
+                        {bookingRoom._prices_by_date.map((item: any, idx: number) => (
+                          <li key={item.date}>
+                            {dayjs(item.date).format('DD/MM/YYYY')}: <strong>{formatPrice(item.price)}</strong>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <Text>
+                      Giá phòng: <strong>
+                        {bookingRoom && bookingRoom._override_price
+                          ? formatPrice(bookingRoom._override_price)
+                          : formatPrice(bookingRoom.price_per_night)}
+                      </strong> / đêm
+                    </Text>
+                  )}
                 </div>
               </Col>
             </Row>
@@ -674,6 +724,13 @@ const HotelRooms: React.FC<RoomProps> = ({
                 <Col>
                   <Text>Tổng tiền:</Text>
                   <Title level={3} style={{ margin: 0 }}>{formatPrice(totalAmount)}</Title>
+                  {bookingRoom && bookingRoom._prices_by_date && (
+                    <div>
+                      <Text type="warning">
+                        * Giá phòng đã được điều chỉnh theo lịch phòng đặc biệt
+                      </Text>
+                    </div>
+                  )}
                 </Col>
                 <Col>
                   <Button 

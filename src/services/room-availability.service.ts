@@ -55,14 +55,15 @@ export class RoomAvailabilityService {
         return res.json();
     }
 
-    static async checkRoomDates(roomId: string, startDate: string, endDate: string): Promise<IBackendRes<any>> {
+    static async checkRoomDates(roomId: string, startDate: string, endDate: string, defaultPrice: number): Promise<IBackendRes<any>> {
         return await sendRequest<IBackendRes<any>>({
             url: `${this.baseUrl}/api/v1/room-availability/check-room-dates`,
             method: 'GET',
             queryParams: {
                 roomId,
                 startDate,
-                endDate
+                endDate,
+                defaultPrice
             },
         });
     }
