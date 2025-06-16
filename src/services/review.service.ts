@@ -87,7 +87,7 @@ export class ReviewService {
         accessToken: string
     ): Promise<any> {
         const res = await fetch(
-            `${this.baseUrl}/api/v1/reviews/${reviewId}/reply`,
+            `${this.baseUrl}/api/v1/reviews/response`,
             {
                 method: 'POST',
                 headers: {
@@ -95,8 +95,8 @@ export class ReviewService {
                     Authorization: `Bearer ${accessToken}`,
                 },
                 body: JSON.stringify({
+                    review_id: reviewId,
                     response_text: responseText,
-                    response_by: responseBy,
                 }),
             }
         );
