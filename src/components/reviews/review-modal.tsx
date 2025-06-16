@@ -29,7 +29,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
     try {
       const reviewData = {
         hotel_id: booking.hotel_id,
-        booking_id: booking._id, // Sử dụng booking._id thay vì hotel_id
+        booking_id: booking._id, 
         rating: values.rating,
         review_text: values.review_text,
       };

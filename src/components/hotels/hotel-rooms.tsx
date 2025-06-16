@@ -729,11 +729,19 @@ const HotelRooms: React.FC<RoomProps> = ({
                   <Text>Tổng tiền:</Text>
                   <Title level={3} style={{ margin: 0 }}>{formatPrice(totalAmount)}</Title>
                   {bookingRoom && bookingRoom._prices_by_date && (
-                    <div>
-                      <Text type="warning">
-                        * Giá phòng đã được điều chỉnh theo lịch phòng đặc biệt
-                      </Text>
-                    </div>
+                    // Chỉ hiển thị thông báo nếu có ít nhất 1 ngày có giá khác với giá mặc định
+                    (() => {
+                      const hasDifferentPrice = bookingRoom._prices_by_date.some(
+                        (item: any) => item.price !== bookingRoom.price_per_night
+                      );
+                      return hasDifferentPrice ? (
+                        <div>
+                          <Text type="warning">
+                            * Giá phòng đã được điều chỉnh theo lịch phòng đặc biệt
+                          </Text>
+                        </div>
+                      ) : null;
+                    })()
                   )}
                 </Col>
                 <Col>

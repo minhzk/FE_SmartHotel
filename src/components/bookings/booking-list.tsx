@@ -82,7 +82,6 @@ const BookingList: React.FC<BookingListProps> = ({ session }) => {
   const [hotelDetails, setHotelDetails] = useState<Record<string, { name: string }>>({});
   const [roomDetails, setRoomDetails] = useState<Record<string, { name: string }>>({});
   const [reviewedBookings, setReviewedBookings] = useState<string[]>([]);
-  const [reviewedHotels, setReviewedHotels] = useState<string[]>([]);
 
   useEffect(() => {
     if (session?.user?.access_token) {
@@ -189,22 +188,9 @@ const BookingList: React.FC<BookingListProps> = ({ session }) => {
           }
           return review.booking_id;
         });
-
-        // Lấy danh sách hotel_id từ các đánh giá đã tồn tại
-        const reviewedHotels = res.data.results.map((review: any) => {
-          // Kiểm tra xem hotel_id có phải là object với _id không (khi được populate)
-          if (review.hotel_id && typeof review.hotel_id === 'object' && review.hotel_id._id) {
-            return review.hotel_id._id;
-          }
-          // Trường hợp hotel_id là string
-          return review.hotel_id;
-        });
         
         console.log('Extracted reviewed booking IDs:', reviewedBookings);
-        console.log('Extracted reviewed hotel IDs:', reviewedHotels);
-        
         setReviewedBookings(reviewedBookings);
-        setReviewedHotels(reviewedHotels);
       }
     } catch (error) {
       console.error('Error fetching user reviews:', error);
@@ -238,25 +224,28 @@ const BookingList: React.FC<BookingListProps> = ({ session }) => {
     setIsReviewModalVisible(true);
   };
 
-  // Cập nhật hàm canReview để kiểm tra cả booking_id và hotel_id
+  // Cập nhật hàm canReview để kiểm tra booking_id và thời hạn 30 ngày
   const canReview = (booking: IBooking) => {
     
     // Kiểm tra xem booking_id có trong danh sách reviewedBookings không
     const hasReviewedBooking = reviewedBookings.some(id => id === booking._id);
     
-    // Kiểm tra xem hotel_id có trong danh sách reviewedHotels không
-    const hasReviewedHotel = reviewedHotels.some(id => id === booking.hotel_id);
+    // Kiểm tra xem check_out_date có quá 30 ngày so với hiện tại không
+    const checkoutDate = dayjs(booking.check_out_date);
+    const currentDate = dayjs();
+    const daysSinceCheckout = currentDate.diff(checkoutDate, 'day');
+    const isWithin30Days = daysSinceCheckout <= 30;
     
     // Điều kiện để hiển thị nút đánh giá:
     // 1. Booking đã hoàn thành
     // 2. Đã thanh toán đầy đủ
     // 3. Chưa đánh giá booking này
-    // 4. Chưa đánh giá khách sạn này
+    // 4. Ngày checkout không quá 30 ngày so với hiện tại
     return (
       booking.status === BookingStatus.COMPLETED && 
       booking.payment_status === PaymentStatus.PAID &&
       !hasReviewedBooking &&
-      !hasReviewedHotel
+      isWithin30Days
     );
   };
 

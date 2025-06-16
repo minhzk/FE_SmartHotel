@@ -355,6 +355,7 @@ export const handleCreateReviewAction = async (
         const res = await ReviewService.createReview(data, accessToken);
 
         if (res?.data) {
+            revalidateTag('list-bookings');
             return { success: true, data: res.data };
         } else {
             return { success: false, message: res?.message || 'Có lỗi xảy ra' };
