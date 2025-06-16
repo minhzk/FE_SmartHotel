@@ -39,10 +39,10 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
   hotelId,
   startOpen = false, // Default to closed
   displayInline = false, // Default to floating widget
-  enableHotelQueries = false,
-  enableRoomQueries = false,
-  enableBookingAssistance = false,
-  isGeneralMode = false,
+  enableHotelQueries = true,
+  enableRoomQueries = true,
+  enableBookingAssistance = true,
+  isGeneralMode = true,
   systemContext,
 }) => {
   const [isOpen, setIsOpen] = useState(startOpen);

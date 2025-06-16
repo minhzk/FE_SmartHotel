@@ -22,40 +22,30 @@ const suggestedQuestions = [
     icon: <HomeOutlined />, 
     category: "Khách sạn",
     questions: [
-      "Khách sạn nào có view đẹp nhất?",
-      "Khách sạn nào phù hợp cho gia đình?",
-      "Các tiện ích khách sạn có gì đặc biệt?",
-      "Có khách sạn nào gần trung tâm không?"
+      "Các khách sạn tốt nhất?",
+      "Các khách sạn trong thành phố cụ thể?",
+      "Khách sạn có những tiện ích, dịch vụ gì?",
+      "Tìm khách sạn theo giá cả..."
     ]
   },
   { 
     icon: <CalendarOutlined />, 
     category: "Đặt phòng",
     questions: [
-      "Làm thế nào để đặt phòng?",
-      "Tôi có thể hủy đặt phòng không?",
-      "Có thể đổi ngày đặt phòng không?",
-      "Có chính sách đặt phòng sớm không?"
-    ]
-  },
-  { 
-    icon: <CreditCardOutlined />, 
-    category: "Thanh toán",
-    questions: [
-      "Có những phương thức thanh toán nào?",
-      "Khi nào tôi cần thanh toán?",
-      "Có được đặt cọc trước không?",
-      "Chính sách hoàn tiền như thế nào?"
+      "Khách sạn có các loại phòng nào?",
+      "Giá cả các loại phòng?",
+      "Phòng có còn trống không?",
+      "Các khách sạn còn phòng trống trong ngày cụ thể?",
     ]
   },
   { 
     icon: <QuestionCircleOutlined />, 
     category: "Khác",
     questions: [
-      "Làm thế nào để đánh giá khách sạn?",
-      "Tôi có thể đặt dịch vụ thêm không?",
-      "Có chương trình khách hàng thân thiết không?",
-      "Chính sách COVID-19 như thế nào?"
+      "Chính sách của hệ thống?",
+      "hệ thống cung cấp những loại phòng nào?",
+      "Chính sách hủy phòng?",
+      "Chính sách hoàn tiền?",
     ]
   }
 ];
