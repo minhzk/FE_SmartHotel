@@ -518,10 +518,11 @@ const BookingList: React.FC<BookingListProps> = ({ session }) => {
           visible={isReviewModalVisible}
           onClose={() => setIsReviewModalVisible(false)}
           session={session}
-          onSuccess={() => {
+          onSuccess={async () => {
             setIsReviewModalVisible(false);
             message.success('Đánh giá của bạn đã được gửi thành công!');
-            fetchBookings();
+            await fetchBookings(); // Fetch lại danh sách booking mới nhất
+            await fetchUserReviews(); // Fetch lại danh sách reviewedBookings để cập nhật trạng thái nút đánh giá
           }}
         />
       )}
