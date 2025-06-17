@@ -40,8 +40,8 @@ const BookingDetail: React.FC<BookingDetailProps> = ({ booking, visible, onClose
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  // Tính số đêm
-  const nights = dayjs(booking.check_out_date).diff(dayjs(booking.check_in_date), 'day');
+  // Tính số đêm thực tế: mỗi đêm là 1 ngày, dù check-in 14h và check-out 12h hôm sau vẫn tính là 1 đêm
+  const nights = dayjs(booking.check_out_date).startOf('day').diff(dayjs(booking.check_in_date).startOf('day'), 'day');
 
   // Xử lý các trạng thái
   const getStatusTag = (status: BookingStatus) => {
