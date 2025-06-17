@@ -35,6 +35,11 @@ const AdminSideBar = () => {
                     icon: <AppstoreOutlined />,
                 },
                 {
+                    key: "analytics",
+                    label: <Link href={"/dashboard/analytics"}>Báo cáo và Thống kê</Link>,
+                    icon: <TeamOutlined />,
+                },
+                {
                     key: "users",
                     label: <Link href={"/dashboard/user"}>Quản lý người dùng</Link>,
                     icon: <TeamOutlined />,

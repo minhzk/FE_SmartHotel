@@ -1,11 +1,27 @@
 'use client'
 
 import { Card, Col, Row, Typography, List } from "antd";
-import { HomeOutlined, TeamOutlined, BankOutlined, BookOutlined, DollarOutlined, CommentOutlined, MessageOutlined, SettingOutlined } from '@ant-design/icons';
+import { 
+    HomeOutlined, 
+    TeamOutlined, 
+    BankOutlined, 
+    BookOutlined, 
+    DollarOutlined, 
+    CommentOutlined, 
+    MessageOutlined, 
+    SettingOutlined,
+    BarChartOutlined
+} from '@ant-design/icons';
 
 const { Title, Paragraph } = Typography;
 
 const adminFeatures = [
+    {
+        title: "Báo cáo và Thống kê",
+        icon: <BarChartOutlined style={{ fontSize: 28, color: "#52c41a" }} />,
+        description: "Xem báo cáo doanh thu, thống kê đặt phòng, biểu đồ phân tích.",
+        link: "/dashboard/analytics"
+    },
     {
         title: "Quản lý khách sạn",
         icon: <HomeOutlined style={{ fontSize: 28, color: "#1677ff" }} />,
