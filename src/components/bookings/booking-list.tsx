@@ -175,8 +175,10 @@ const BookingList: React.FC<BookingListProps> = ({ session }) => {
   const fetchUserReviews = async () => {
     try {
       console.log('Fetching user reviews with token:', session.user.access_token);
+      let queryParams: any = { current: 1, pageSize: 100 };
       
-      const res = await ReviewService.getUserReviews({}, session.user.access_token);
+      // Truyền thêm pageSize vào params
+      const res = await ReviewService.getUserReviews(queryParams, session.user.access_token);
 
       console.log('User reviews API response:', res?.data);
 
