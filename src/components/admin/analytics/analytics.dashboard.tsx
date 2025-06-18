@@ -187,7 +187,7 @@ const AnalyticsDashboard: React.FC = () => {
                         <div style={{ marginTop: 8 }}>
                             <FaArrowUp style={{ color: '#3f8600' }} />
                             <span style={{ color: '#3f8600', marginLeft: 4 }}>
-                                +{overviewStats?.revenueGrowth || 0}%
+                                {overviewStats?.revenueGrowth || 0}%
                             </span>
                         </div>
                     </Card>
@@ -203,7 +203,7 @@ const AnalyticsDashboard: React.FC = () => {
                         <div style={{ marginTop: 8 }}>
                             <FaArrowUp style={{ color: '#1890ff' }} />
                             <span style={{ color: '#1890ff', marginLeft: 4 }}>
-                                +{overviewStats?.bookingGrowth || 0}%
+                                {overviewStats?.bookingGrowth || 0}%
                             </span>
                         </div>
                     </Card>
