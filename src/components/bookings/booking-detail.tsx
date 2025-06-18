@@ -13,6 +13,7 @@ enum BookingStatus {
   CONFIRMED = 'confirmed',
   CANCELED = 'canceled',
   COMPLETED = 'completed',
+  EXPIRED = 'expired',
 }
 
 enum PaymentStatus {
@@ -21,6 +22,7 @@ enum PaymentStatus {
   PARTIALLY_PAID = 'partially_paid',
   FAILED = 'failed',
   REFUNDED = 'refunded',
+  EXPIRED = 'expired', 
 }
 
 enum DepositStatus {
@@ -54,6 +56,8 @@ const BookingDetail: React.FC<BookingDetailProps> = ({ booking, visible, onClose
         return <Tag icon={<CloseCircleOutlined />} color="red">Đã hủy</Tag>;
       case BookingStatus.COMPLETED:
         return <Tag icon={<CheckCircleOutlined />} color="blue">Hoàn thành</Tag>;
+      case BookingStatus.EXPIRED:
+        return <Tag icon={<CloseCircleOutlined />} color="volcano">Hết hạn</Tag>;
       default:
         return <Tag color="default">{status}</Tag>;
     }
@@ -71,6 +75,8 @@ const BookingDetail: React.FC<BookingDetailProps> = ({ booking, visible, onClose
         return <Tag color="red">Thanh toán thất bại</Tag>;
       case PaymentStatus.REFUNDED:
         return <Tag color="purple">Đã hoàn tiền</Tag>;
+      case PaymentStatus.EXPIRED:
+        return <Tag color="volcano">Hết hạn thanh toán</Tag>;
       default:
         return <Tag color="default">{status}</Tag>;
     }
