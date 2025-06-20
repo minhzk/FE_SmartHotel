@@ -135,13 +135,14 @@ const UserHeader = ({ session }: UserHeaderProps) => {
       label: <Link href="/hotels">Khách sạn</Link>,
     },
     {
-      key: 'deals',
-      label: <Link href="/deals">Ưu đãi</Link>,
+      key: 'policy',
+      label: <Link href="/policy">Chính sách</Link>,
     },
     {
       key: 'about',
       label: <Link href="/about">Về chúng tôi</Link>,
-    },
+    }
+
   ];
 
   return (
