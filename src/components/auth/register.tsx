@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Button, Col, Divider, Form, Input, notification, Row } from 'antd';
+import { Button, Col, Divider, Form, Input, notification, Row, Checkbox } from 'antd';
 import { ArrowLeftOutlined, GoogleOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -100,6 +100,24 @@ const Register = () => {
                             ]}
                         >
                             <Input.Password />
+                        </Form.Item>
+                        <Form.Item
+                            name="policy"
+                            valuePropName="checked"
+                            rules={[{ required: true, message: 'Bạn phải đồng ý với chính sách của chúng tôi!' }]}
+                        >
+                            <Checkbox>
+                                Tôi đồng ý với{' '}
+                                <a
+                                    href="/policy"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={e => e.stopPropagation()}
+                                >
+                                    chính sách
+                                </a>
+                                {' '}của Smart Hotel
+                            </Checkbox>
                         </Form.Item>
                         <Form.Item>
                             <Button type="primary" htmlType="submit">
