@@ -164,6 +164,10 @@ const RoomAvailability = ({ isModalOpen, setIsModalOpen, room }: IRoomAvailabili
                 color = 'red';
                 label = 'Đã đặt';
                 break;
+            case 'reserved':
+                color = 'blue';
+                label = 'Giữ chỗ';
+                break;
             case 'maintenance':
                 color = 'orange';
                 label = 'Bảo trì';
