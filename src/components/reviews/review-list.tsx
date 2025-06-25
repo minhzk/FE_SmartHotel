@@ -50,6 +50,8 @@ const ReviewList: React.FC<ReviewListProps> = ({ session }) => {
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null]>([null, null]);
   const [sentimentFilter, setSentimentFilter] = useState<string>('');
   const [ratingFilter, setRatingFilter] = useState<string>('');
+  const [loadingEdit, setLoadingEdit] = useState(false);
+  const [loadingDelete, setLoadingDelete] = useState(false);
 
   useEffect(() => {
     if (session?.user?.access_token) {
@@ -116,10 +118,9 @@ const ReviewList: React.FC<ReviewListProps> = ({ session }) => {
 
   const handleEditSubmit = async () => {
     if (!selectedReview || !session?.user?.access_token) return;
-
+    setLoadingEdit(true);
     try {
       const values = await form.validateFields();
-      
       await ReviewService.updateReview(
         {
           _id: selectedReview._id,
@@ -127,28 +128,30 @@ const ReviewList: React.FC<ReviewListProps> = ({ session }) => {
         },
         session.user.access_token
       );
-
       message.success('Cập nhật đánh giá thành công');
       setEditModalVisible(false);
       fetchReviews(pagination.current, pagination.pageSize);
     } catch (error) {
       console.error('Error updating review:', error);
       message.error('Không thể cập nhật đánh giá');
+    } finally {
+      setLoadingEdit(false);
     }
   };
 
   const handleDeleteConfirm = async () => {
     if (!selectedReview || !session?.user?.access_token) return;
-
+    setLoadingDelete(true);
     try {
       await ReviewService.deleteReview(selectedReview._id, session.user.access_token);
-
       message.success('Xóa đánh giá thành công');
       setDeleteModalVisible(false);
       fetchReviews(pagination.current, pagination.pageSize);
     } catch (error) {
       console.error('Error deleting review:', error);
       message.error('Không thể xóa đánh giá');
+    } finally {
+      setLoadingDelete(false);
     }
   };
 
@@ -329,6 +332,7 @@ const ReviewList: React.FC<ReviewListProps> = ({ session }) => {
         onCancel={() => setEditModalVisible(false)}
         okText="Cập nhật"
         cancelText="Hủy"
+        confirmLoading={loadingEdit}
       >
         <Form form={form} layout="vertical">
           <Form.Item
@@ -357,6 +361,7 @@ const ReviewList: React.FC<ReviewListProps> = ({ session }) => {
         okText="Xóa"
         cancelText="Hủy"
         okButtonProps={{ danger: true }}
+        confirmLoading={loadingDelete}
       >
         <p>Bạn có chắc chắn muốn xóa đánh giá này không?</p>
         <p>Hành động này không thể hoàn tác.</p>
