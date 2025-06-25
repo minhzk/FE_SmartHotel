@@ -291,7 +291,7 @@ const HotelRooms: React.FC<RoomProps> = ({
 
   const groupRoomsByType = (rooms: any[]) => {
     const groups: Record<string, any[]> = {};
-    rooms.forEach(room => {
+    rooms.filter(room => room.is_active !== false).forEach(room => {
       const type = room.room_type || 'Khác';
       if (!groups[type]) groups[type] = [];
       groups[type].push(room);
