@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Card, Row, Col, Typography, Space, Pagination, Spin, Select, Checkbox, Rate, Input, Button, Empty, Divider, Breadcrumb, DatePicker } from "antd";
-import { FilterOutlined, HomeOutlined } from "@ant-design/icons";
+import { Card, Row, Col, Typography, Space, Spin, Select, Checkbox, Rate, Input, Button, Empty, Divider, Breadcrumb, DatePicker } from "antd";
+import { FilterOutlined, HomeOutlined, LoadingOutlined } from "@ant-design/icons";
 import { HotelService } from "@/services/hotel.service";
 import HotelCard from "./hotel-card";
 import queryString from 'query-string';
@@ -24,8 +24,15 @@ const HotelListing = ({ session }: IHotelListingProps) => {
   const router = useRouter();
   
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const [hotels, setHotels] = useState<any[]>([]);
   const [meta, setMeta] = useState<any>({});
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [current, setCurrent] = useState<number>(1);
+  const PAGE_SIZE = 5;
+  
+  // FIX: Thêm ref để track đang fetch
+  const isFetchingRef = useRef<boolean>(false);
   
   // Filters
   const [search, setSearch] = useState<string>(searchParams?.get('search') || '');
@@ -51,9 +58,6 @@ const HotelListing = ({ session }: IHotelListingProps) => {
   );
   const [children, setChildren] = useState<number | null>(
     searchParams?.get('children') ? Number(searchParams.get('children')) : null
-  );
-  const [current, setCurrent] = useState<number>(
-    searchParams?.get('current') ? Number(searchParams.get('current')) : 1
   );
   const [sortBy, setSortBy] = useState<string>(searchParams?.get('sortBy') || 'rating_desc');
   const [checkIn, setCheckIn] = useState<string | null>(
@@ -121,56 +125,25 @@ const HotelListing = ({ session }: IHotelListingProps) => {
       .replace(/\s+/g, ' ');
   };
 
-  // Effect để cập nhật URL khi các giá trị filter thay đổi
-  useEffect(() => {
-    const params: any = {};
-    
-    if (search) params.search = search;
-    if (name) params.name = normalizeSearchText(name);
-    if (city) params.city = city;
-    if (rating) params.rating = rating;
-    if (minPrice) params.min_price = minPrice;
-    if (maxPrice) params.max_price = maxPrice;
-    if (capacity) params.capacity = capacity;
-    if (adults) params.adults = adults;
-    if (children) params.children = children;
-    if (checkIn) params.check_in = checkIn;
-    if (checkOut) params.check_out = checkOut;
-    if (sortBy) params.sortBy = sortBy;
-    if (sentimentScore) params.sentiment_score = sentimentScore;
-    params.current = current;
-    
-    const queryStr = queryString.stringify(params);
-    router.push(`/hotels?${queryStr}`);
-  }, [search, name, city, rating, minPrice, maxPrice, capacity, adults, children, checkIn, checkOut, sortBy, current, sentimentScore]);
-
-  // Load data khi component mount và khi các filter thay đổi
-  useEffect(() => {
-    fetchHotels();
-  }, [current, sortBy, city, rating, minPrice, maxPrice, capacity, search, name, adults, children, checkIn, checkOut, sentimentScore]);
-  
-  // Xử lý thay đổi range ngày
-  const handleDateChange = (dates: any) => {
-    if (dates && dates.length === 2) {
-      const startDate = dates[0]?.format('YYYY-MM-DD');
-      const endDate = dates[1]?.format('YYYY-MM-DD');
-      setDateRange(dates);
-      setCheckIn(startDate);
-      setCheckOut(endDate);
-    } else {
-      setDateRange(null);
-      setCheckIn(null);
-      setCheckOut(null);
+  // Hàm fetch hotels với support infinity scroll
+  const fetchHotels = useCallback(async (page: number = 1, append: boolean = false) => {
+    // FIX: Prevent duplicate calls
+    if (isFetchingRef.current) {
+      console.log('⚠️ Already fetching, skipping...');
+      return;
     }
-  };
-
-  // Hàm lấy danh sách khách sạn từ API
-  const fetchHotels = async () => {
-    setLoading(true);
+    
+    isFetchingRef.current = true;
+    
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
     
     const queryParams: any = {
-      current,
-      pageSize: 5,
+      current: page,
+      pageSize: PAGE_SIZE,
     };
     
     if (search) queryParams.search = normalizeSearchText(search);
@@ -194,13 +167,121 @@ const HotelListing = ({ session }: IHotelListingProps) => {
       );
       
       if (res?.data) {
-        setHotels(res.data.results || []);
-        setMeta(res.data.meta || {});
+        const newHotels = res.data.results || [];
+        const newMeta = res.data.meta || {};
+        
+        console.log(`📦 Fetched page ${page}:`, newHotels.length, 'hotels');
+        
+        if (append) {
+          setHotels(prev => {
+            // FIX: Deduplicate bằng _id
+            const existingIds = new Set(prev.map(h => h._id));
+            const uniqueNewHotels = newHotels.filter((h: any) => !existingIds.has(h._id));
+            console.log(`✅ Adding ${uniqueNewHotels.length} unique hotels`);
+            return [...prev, ...uniqueNewHotels];
+          });
+        } else {
+          setHotels(newHotels);
+        }
+        
+        setMeta(newMeta);
+        
+        // Check if has more data
+        const totalPages = Math.ceil(newMeta.total / PAGE_SIZE);
+        setHasMore(page < totalPages);
       }
     } catch (error) {
       console.error("Failed to fetch hotels:", error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
+      // FIX: Reset flag sau khi hoàn thành
+      isFetchingRef.current = false;
+    }
+  }, [search, name, city, rating, sentimentScore, minPrice, maxPrice, capacity, adults, children, checkIn, checkOut, sortBy, session]);
+
+  // Effect để cập nhật URL (không include current vì dùng infinity scroll)
+  useEffect(() => {
+    const params: any = {};
+    
+    if (search) params.search = search;
+    if (name) params.name = normalizeSearchText(name);
+    if (city) params.city = city;
+    if (rating) params.rating = rating;
+    if (minPrice) params.min_price = minPrice;
+    if (maxPrice) params.max_price = maxPrice;
+    if (capacity) params.capacity = capacity;
+    if (adults) params.adults = adults;
+    if (children) params.children = children;
+    if (checkIn) params.check_in = checkIn;
+    if (checkOut) params.check_out = checkOut;
+    if (sortBy) params.sortBy = sortBy;
+    if (sentimentScore) params.sentiment_score = sentimentScore;
+    
+    const queryStr = queryString.stringify(params);
+    router.push(`/hotels?${queryStr}`);
+  }, [search, name, city, rating, minPrice, maxPrice, capacity, adults, children, checkIn, checkOut, sortBy, sentimentScore]);
+
+  // Reset về page 1 khi filters thay đổi
+  useEffect(() => {
+    setCurrent(1);
+    setHasMore(true);
+    isFetchingRef.current = false; // Reset flag khi filter thay đổi
+    fetchHotels(1, false);
+  }, [sortBy, city, rating, minPrice, maxPrice, capacity, search, name, adults, children, checkIn, checkOut, sentimentScore]);
+
+  // Infinity scroll - Manual scroll detection
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
+    const handleScroll = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight;
+        const clientHeight = document.documentElement.clientHeight;
+        
+        const distanceFromBottom = scrollHeight - (scrollTop + clientHeight);
+        
+        // FIX: Check isFetchingRef trước khi trigger
+        if (
+          distanceFromBottom < 300 && 
+          hasMore && 
+          !loadingMore && 
+          !loading &&
+          !isFetchingRef.current // ✅ Thêm check này
+        ) {
+          console.log('🔽 Scroll triggered, loading page:', current + 1);
+          
+          setCurrent(prev => {
+            const nextPage = prev + 1;
+            fetchHotels(nextPage, true);
+            return nextPage;
+          });
+        }
+      }, 100);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(timeoutId);
+    };
+  }, [hasMore, loadingMore, loading, current, fetchHotels]);
+
+  // Xử lý thay đổi range ngày
+  const handleDateChange = (dates: any) => {
+    if (dates && dates.length === 2) {
+      const startDate = dates[0]?.format('YYYY-MM-DD');
+      const endDate = dates[1]?.format('YYYY-MM-DD');
+      setDateRange(dates);
+      setCheckIn(startDate);
+      setCheckOut(endDate);
+    } else {
+      setDateRange(null);
+      setCheckIn(null);
+      setCheckOut(null);
     }
   };
   
@@ -227,6 +308,7 @@ const HotelListing = ({ session }: IHotelListingProps) => {
     setCheckOut(null);
     setSortBy('rating_desc');
     setCurrent(1);
+    setHasMore(true);
     router.push('/hotels');
   };
 
@@ -296,9 +378,9 @@ const HotelListing = ({ session }: IHotelListingProps) => {
                 <Option value="nha trang">Nha Trang</Option>
                 <Option value="da lat">Đà Lạt</Option>
                 <Option value="phu quoc">Phú Quốc</Option>
-                <Option value="hue">Huế</Option>
+                <Option value="hue">Huế</Option>
                 <Option value="quy nhon">Quy Nhơn</Option>
-                <Option value="vung tau">Vũng Tàu</Option>
+                <Option value="vung tau">Vũng Tàu</Option>
               </Select>
             </div>
             
@@ -466,7 +548,6 @@ const HotelListing = ({ session }: IHotelListingProps) => {
                 value={sortBy}
                 onChange={(value) => {
                   setSortBy(value);
-                  setCurrent(1);
                 }}
                 style={{ width: 200 }}
               >
@@ -484,27 +565,38 @@ const HotelListing = ({ session }: IHotelListingProps) => {
             <div className="loading-container">
               <Spin size="large" />
             </div>
-          ) : hotels.length > 0 ? (
-            <div className="hotel-list">
-              {hotels.map((hotel) => (
-                <HotelCard key={hotel._id} hotel={hotel} session={session} />
-              ))}
-              
-              <div className="pagination-container">
-                <Pagination
-                  current={current}
-                  pageSize={meta?.pageSize || 10}
-                  total={meta?.total || 0}
-                  onChange={(page) => setCurrent(page)}
-                  showSizeChanger={false}
-                />
-              </div>
-            </div>
           ) : (
-            <Empty
-              description="Không tìm thấy khách sạn nào phù hợp"
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-            />
+            <>
+              {hotels.length > 0 ? (
+                <div className="hotel-list">
+                  {hotels.map((hotel) => (
+                    <HotelCard key={hotel._id} hotel={hotel} session={session} />
+                  ))}
+                </div>
+              ) : (
+                <Empty
+                  description="Không tìm thấy khách sạn nào phù hợp"
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                />
+              )}
+              
+              {/* Loading more indicator */}
+              {loadingMore && (
+                <div className="loading-more-container">
+                  <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
+                  <Text style={{ marginLeft: 12, color: '#666' }}>
+                    Đang tải thêm khách sạn...
+                  </Text>
+                </div>
+              )}
+              
+              {/* End message */}
+              {!hasMore && hotels.length > 0 && (
+                <div className="end-message">
+                  <Divider>Đã hiển thị tất cả {meta?.total || 0} khách sạn</Divider>
+                </div>
+              )}
+            </>
           )}
         </Col>
       </Row>
@@ -516,10 +608,10 @@ const HotelListing = ({ session }: IHotelListingProps) => {
           padding: 20px;
         }
         
-        .filter-card {
-          position: sticky;
-          top: 20px;
-        }
+        // .filter-card {
+        //   position: sticky;
+        //   top: 20px;
+        // }
         
         .filter-section {
           margin-bottom: 16px;
@@ -550,10 +642,17 @@ const HotelListing = ({ session }: IHotelListingProps) => {
           gap: 16px;
         }
         
-        .pagination-container {
-          margin-top: 24px;
+        .loading-more-container {
           display: flex;
+          align-items: center;
           justify-content: center;
+          padding: 24px;
+          margin-top: 16px;
+        }
+        
+        .end-message {
+          margin-top: 24px;
+          text-align: center;
         }
         
         .loading-container {
