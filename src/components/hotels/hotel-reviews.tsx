@@ -24,27 +24,16 @@ const HotelReviews: React.FC<ReviewProps> = ({ reviews, rating = 0 }) => {
   
   const totalReviews = reviews.length;
   
-  // Map sentiment labels to Vietnamese
-  const getSentimentLabel = (label?: string) => {
-    const labelMap: Record<string, string> = {
-      'NEGATIVE': 'Tiêu cực',
-      'NEUTRAL': 'Trung lập',
-      'SATISFIED': 'Hài lòng',
-      'EXCELLENT': 'Tuyệt vời',
-      'PERFECT': 'Hoàn hảo'
-    };
+  // Get sentiment color based on numeric score (1-5)
+  const getSentimentColor = (sentiment?: number) => {
+    if (!sentiment) return 'default';
     
-    return labelMap[label || ''] || label;
-  };
-  
-  // Get sentiment color
-  const getSentimentColor = (label?: string) => {
-    switch (label) {
-      case 'NEGATIVE': return 'red';
-      case 'NEUTRAL': return 'orange';
-      case 'SATISFIED': return 'blue';
-      case 'EXCELLENT': return 'green';
-      case 'PERFECT': return 'purple';
+    switch (sentiment) {
+      case 1: return 'red';
+      case 2: return 'orange';
+      case 3: return 'blue';
+      case 4: return 'green';
+      case 5: return 'purple';
       default: return 'default';
     }
   };
@@ -107,8 +96,8 @@ const HotelReviews: React.FC<ReviewProps> = ({ reviews, rating = 0 }) => {
                   <div className="review-rating">
                     <Rate disabled value={review.rating} style={{ fontSize: 14 }} />
                     {review.sentiment_label && (
-                      <Tag color={getSentimentColor(review.sentiment_label)}>
-                        {getSentimentLabel(review.sentiment_label)}
+                      <Tag color={getSentimentColor(review.sentiment)}>
+                        {review.sentiment_label}
                       </Tag>
                     )}
                   </div>
